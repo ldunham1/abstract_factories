@@ -1,7 +1,5 @@
 import inspect
-import os
 import types
-import uuid
 
 from . import utils
 from .constants import LOGGER
