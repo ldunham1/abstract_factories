@@ -2,21 +2,39 @@ import inspect
 import types
 
 from . import utils
-from .constants import LOGGER
+from .constants import LOGGER, FactoryItemModes
 
 
 # ------------------------------------------------------------------------------
-class SimpleFactory(object):
+class _AbstractFactory(object):
+    """
+    AbstractFactory for creating a 'loose' kind of abstract factories.
+    Direct interaction with items is also possible, for convenience (whilst contradicting the nature
+    of abstract design pattern).
+
+    :param type abstract: Abstract type to use. Only subclasses of this type will be supported.
+    :param list[str]|str|None paths: Path(s) to immediately find abstracts in. Search is recursive.
+    :param list[ModuleType]|ModuleType|None modules: Module(s) to immediately find abstracts in. Search is surface level.
+    :param str name_key: Item name identifier. Defaults to class name.
+    :param str version_key: Item version identifier. Defaults to None, where versioning is not supported.
+    :param FactoryItemModes|str item_mode: Factory item mode. Determine they type of Item to store (types or instances).
+
+    """
+
+    # True to only store unique items, False to support non-unique.
+    UNIQUE_ITEMS = True
 
     def __init__(self,
                  abstract,
                  paths=None,
                  modules=None,
-                 name_key=None,
-                 version_key=None):
+                 name_key='__name__',
+                 version_key=None,
+                 item_mode=FactoryItemModes.Types):
         self._abstract = abstract
-        self._name_key = name_key or '__name__'
+        self._name_key = name_key
         self._version_key = version_key
+        self._item_mode = item_mode
 
         self._items = []
 
@@ -37,57 +55,77 @@ class SimpleFactory(object):
     def abstract(self):
         return self._abstract
 
+    @property
+    def item_mode(self):
+        return self._item_mode
+
     # --------------------------------------------------------------------------
+    def _test_factory_mode(self):
+        if self.item_mode not in (FactoryItemModes.Types,
+                                  FactoryItemModes.Instances):
+            raise ValueError(
+                'FactoryMode expected to be Mode.Types ({}) or Mode.Instances ({}). '
+                'Received {}.'.format(FactoryItemModes.Types, FactoryItemModes.Instances, self.item_mode)
+            )
+
     def _is_viable_item(self, item):
-        if not inspect.isclass(item):
-            return False
-        elif item is self._abstract:
-            return False
-        elif not issubclass(item, self._abstract):
-            return False
+        self._test_factory_mode()
+
+        if self.item_mode == FactoryItemModes.Types:
+            if not inspect.isclass(item):
+                return False
+            elif item is self._abstract:
+                return False
+            elif not issubclass(item, self._abstract):
+                return False
+
+        else:
+            if inspect.isclass(item):
+                return False
+            elif type(item) is self._abstract:
+                return False
+            elif not isinstance(item, self._abstract):
+                return False
 
         return True
 
     def _item_is_registered(self, item):
         return item in self._items
 
-    def _prepare_item_for_add(self, item):
-        return item
-
-    def _prepare_item_for_remove(self, item):
-        return item
-
     def _add_item(self, item):
         if self._is_viable_item(item):
-            prepared_item = self._prepare_item_for_add(item)
-            if not self._item_is_registered(prepared_item):
+            if not self.UNIQUE_ITEMS or not self._item_is_registered(item):
                 LOGGER.debug('Adding item {}.'.format(item))
-                self._items.append(prepared_item)
+                self._items.append(item)
                 return 1
         return 0
 
     def _remove_item(self, item):
-        prepared_item = self._prepare_item_for_remove(item)
-        if self._item_is_registered(prepared_item):
+        count = 0
+        while self._item_is_registered(item):
             LOGGER.debug('Removing item {}.'.format(item))
-            self._items.remove(prepared_item)
-            return 1
-        return 0
+            self._items.remove(item)
+            count += 1
+        return count
 
     # --------------------------------------------------------------------------
     def get_name(self, item):
         """
         Get the name value for <item>.
-        :param type item: Abstract subclass to use.
+        :param type|object item: Abstract subclass to use.
         :rtype: str
         """
-        name = getattr(item, self._name_key)
+        # If using instances, defer missing name attributes to the class (ie __name__).
+        if self.item_mode == FactoryItemModes.Instances:
+            name = getattr(item, self._name_key, getattr(type(item), self._name_key))
+        else:
+            name = getattr(item, self._name_key)
         return name() if callable(name) else name
 
     def get_version(self, item):
         """
         Get the version value for <item>, if available.
-        :param type item: Abstract subclass to use.
+        :param type|object item: Abstract subclass to use.
         :rtype: int|float|None
         """
         version = None
@@ -95,7 +133,11 @@ class SimpleFactory(object):
             return version
 
         try:
-            version = getattr(item, self._version_key)
+            # If using instances, defer missing name attributes to the class.
+            if self.item_mode == FactoryItemModes.Instances:
+                version = getattr(item, self._version_key, getattr(type(item), self._version_key, None))
+            else:
+                version = getattr(item, self._version_key)
         except AttributeError as e:
             LOGGER.debug(
                 'Failed to get Version from {} using '
@@ -110,7 +152,7 @@ class SimpleFactory(object):
         If no matching version is found, return None.
         :param str name: Name to get the item for.
         :param int|float|None version: Version to get. None to get latest.
-        :rtype: type|None
+        :rtype: type|object|None
         """
         name_matches = (
             item
@@ -163,7 +205,7 @@ class SimpleFactory(object):
     def items(self):
         """
         Get the registered items.
-        :rtype: list[type]
+        :rtype: list[type|object]
         """
         results = [
             self.get(name)
@@ -179,7 +221,7 @@ class SimpleFactory(object):
     def register_item(self, item):
         """
         Register <item> with the factory.
-        :param type item: Plugin to register with the factory.
+        :param type|object item: Plugin to register with the factory.
         :return: True if <item> was registered successfully.
         :rtype: bool
         """
@@ -190,7 +232,7 @@ class SimpleFactory(object):
     def deregister_item(self, item):
         """
         Deregister <item> from the factory.
-        :param type item: Plugin to deregister with the factory.
+        :param type|object item: Plugin to deregister with the factory.
         :return: True if <item> was deregistered successfully.
         :rtype: bool
         """
@@ -231,3 +273,40 @@ class SimpleFactory(object):
                 count += self.register_module(module)
 
         return count
+
+
+# ------------------------------------------------------------------------------
+class AbstractTypeFactory(_AbstractFactory):
+
+    def __init__(self,
+                 abstract,
+                 paths=None,
+                 modules=None,
+                 name_key='__name__',
+                 version_key=None):
+        super(AbstractTypeFactory, self).__init__(
+            abstract=abstract,
+            paths=paths,
+            modules=modules,
+            name_key=name_key,
+            version_key=version_key,
+            item_mode=FactoryItemModes.Types,
+        )
+
+
+class AbstractInstanceFactory(_AbstractFactory):
+
+    def __init__(self,
+                 abstract,
+                 paths=None,
+                 modules=None,
+                 name_key='__name__',
+                 version_key=None):
+        super(AbstractInstanceFactory, self).__init__(
+            abstract=abstract,
+            paths=paths,
+            modules=modules,
+            name_key=name_key,
+            version_key=version_key,
+            item_mode=FactoryItemModes.Instances,
+        )

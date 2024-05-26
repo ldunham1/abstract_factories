@@ -3,7 +3,7 @@ import os
 import unittest
 
 from .abstract import VehicleAbstract
-from abstract_factories import SimpleFactory
+from abstract_factories import AbstractTypeFactory, AbstractInstanceFactory
 
 try:
     from io import StringIO
@@ -11,10 +11,11 @@ except ImportError:
     from unittest.mock import StringIO
 
 
-class TestVehicleFactory(unittest.TestCase):
+class TestVehicleTypeFactory(unittest.TestCase):
+
     @classmethod
     def setUpClass(cls):
-        cls.VehicleFactory = SimpleFactory(VehicleAbstract, paths=[os.path.dirname(__file__)], name_key='__name__')
+        cls.VehicleFactory = AbstractTypeFactory(VehicleAbstract, paths=[os.path.dirname(__file__)], name_key='__name__')
 
     def test_get_car(self):
         car = self.VehicleFactory.get('Car')
@@ -52,6 +53,55 @@ class TestVehicleFactory(unittest.TestCase):
             motorcycle_instance.stop()
         self.assertEqual(fake_out.getvalue(), "Starting 2022 Honda CBR600RR motorcycle.\n"
                                               "Stopping 2022 Honda CBR600RR motorcycle.\n")
+
+    def test_get_non_existent_vehicle(self):
+        vehicle = self.VehicleFactory.get('NonExistentVehicle')
+        self.assertIsNone(vehicle)
+
+
+class TestVehicleInstanceFactory(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.VehicleFactory = AbstractInstanceFactory(VehicleAbstract, paths=[os.path.dirname(__file__)], name_key='name', version_key='year')
+
+    def test_get_car(self):
+        car_instance = self.VehicleFactory.get('Ford Fiesta')
+        with patch('sys.stdout', new=StringIO()) as fake_out:
+            car_instance.start()
+            car_instance.stop()
+        self.assertEqual(fake_out.getvalue(), "Starting 1987 Ford Fiesta car.\n"
+                                              "Stopping 1987 Ford Fiesta car.\n")
+
+    def test_get_truck(self):
+        truck_instance = self.VehicleFactory.get('Ford F-150')
+        with patch('sys.stdout', new=StringIO()) as fake_out:
+            truck_instance.start()
+            truck_instance.stop()
+        self.assertEqual(fake_out.getvalue(), "Starting 2020 Ford F-150 truck.\n"
+                                              "About to stop...\n"
+                                              "Stopping 2020 Ford F-150 truck.\n")
+
+    def test_get_truck_alt_version(self):
+        truck_instance = self.VehicleFactory.get('Ford F-150', version=2018)
+        with patch('sys.stdout', new=StringIO()) as fake_out:
+            truck_instance.start()
+            truck_instance.stop()
+        self.assertEqual(fake_out.getvalue(), "Starting 2018 Ford F-150 truck.\n"
+                                              "Stopping 2018 Ford F-150 truck.\n")
+
+    def test_get_motorcycle(self):
+        motorcycle_instance = self.VehicleFactory.get('Yamaha R3')
+        with patch('sys.stdout', new=StringIO()) as fake_out:
+            motorcycle_instance.start()
+            motorcycle_instance.stop()
+        self.assertEqual(fake_out.getvalue(), "Starting 2012 Yamaha R3 motorcycle.\n"
+                                              "Stopping 2012 Yamaha R3 motorcycle.\n")
+
+    def test_get_motorcycles(self):
+        for name in ['Yamaha R3', 'Honda CBR']:
+            motorcycle_instance = self.VehicleFactory.get(name)
+            self.assertTrue(motorcycle_instance)
 
     def test_get_non_existent_vehicle(self):
         vehicle = self.VehicleFactory.get('NonExistentVehicle')
