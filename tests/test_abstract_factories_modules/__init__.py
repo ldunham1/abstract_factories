@@ -1,5 +1,10 @@
 from unittest.mock import patch
+import os
+import sys
 import unittest
+
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from . import vehicles
 from .abstract import VehicleAbstract

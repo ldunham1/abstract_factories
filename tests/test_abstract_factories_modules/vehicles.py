@@ -4,19 +4,19 @@ from .abstract import VehicleAbstract
 class Car(VehicleAbstract):
 
     def start(self):
-        print(f"Starting {self.year} {self.make} {self.model} car.")
+        print("Starting {} {} {} car.".format(self.year, self.make, self.model))
 
     def stop(self):
-        print(f"Stopping {self.year} {self.make} {self.model} car.")
+        print("Stopping {} {} {} car.".format(self.year, self.make, self.model))
 
 
 class Truck(VehicleAbstract):
 
     def start(self):
-        print(f"Starting {self.year} {self.make} {self.model} truck.")
+        print("Starting {} {} {} truck.".format(self.year, self.make, self.model))
 
     def stop(self):
-        print(f"Stopping {self.year} {self.make} {self.model} truck.")
+        print("Stopping {} {} {} truck.".format(self.year, self.make, self.model))
 
 
 class Truck2(Truck):
@@ -29,10 +29,10 @@ class Truck2(Truck):
 class Motorcycle(VehicleAbstract):
 
     def start(self):
-        print(f"Starting {self.year} {self.make} {self.model} motorcycle.")
+        print("Starting {} {} {} motorcycle.".format(self.year, self.make, self.model))
 
     def stop(self):
-        print(f"Stopping {self.year} {self.make} {self.model} motorcycle.")
+        print("Stopping {} {} {} motorcycle.".format(self.year, self.make, self.model))
 
 
 # ------------------------------------------------------------------------------

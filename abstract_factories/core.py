@@ -117,7 +117,7 @@ class _AbstractFactory(object):
         """
         # If using instances, defer missing name attributes to the class (ie __name__).
         if self.item_mode == FactoryItemModes.Instances:
-            name = getattr(item, self._name_key, getattr(type(item), self._name_key))
+            name = getattr(item, self._name_key, getattr(type(item), self._name_key, None))
         else:
             name = getattr(item, self._name_key)
         return name() if callable(name) else name

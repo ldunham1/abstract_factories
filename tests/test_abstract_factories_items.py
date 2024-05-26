@@ -1,4 +1,8 @@
+import os
+import sys
 import unittest
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from abstract_factories import AbstractTypeFactory, AbstractInstanceFactory
 
