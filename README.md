@@ -4,9 +4,22 @@ loosely based on  Abstract Factory design pattern.
 The primary use case is to provide a clear layer of abstraction 
 for scalable data.
 
+- Tested on Python 3.8 - 3.12
+- Functional on Python 2.7.
+  > Wait - what? Python 2.7? What year is this?
+  >
+  > I have often professionally worked on legacy systems that are too 
+  > fragile or large to realistically update to Python 3.
+  > Providing there's no functional or notable impact in order to 
+  > support 2.7, I have no reason to ignore its existence _yet_.
+
+
+## Overview
+
 There are 2 convenient factory classes provided for different use cases of abstract_factories. 
 Both have the same interface and functionality, the difference being the format of the 
 item being stored. 
+
 
 ##### AbstractTypeFactory
 Stores abstract subclasses. 
