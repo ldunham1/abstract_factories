@@ -5,6 +5,7 @@ from . import utils
 from .constants import LOGGER
 
 
+# ------------------------------------------------------------------------------
 class SimpleFactory(object):
 
     def __init__(self,
@@ -27,13 +28,16 @@ class SimpleFactory(object):
             for module in utils.ensure_iterable(modules):
                 self.register_module(module)
 
+    # --------------------------------------------------------------------------
     def __repr__(self):
         return '{}(items={})'.format(type(self).__name__, len(self._items))
 
+    # --------------------------------------------------------------------------
     @property
     def abstract(self):
         return self._abstract
 
+    # --------------------------------------------------------------------------
     def _is_viable_item(self, item):
         if not inspect.isclass(item):
             return False
@@ -47,14 +51,30 @@ class SimpleFactory(object):
     def _item_is_registered(self, item):
         return item in self._items
 
-    def _add_item(self, item):
-        if self._is_viable_item(item) and not self._item_is_registered(item):
-            LOGGER.debug('Adding item {}.'.format(item))
-            self._items.append(item)
-            return 1
+    def _prepare_item_for_add(self, item):
+        return item
 
+    def _prepare_item_for_remove(self, item):
+        return item
+
+    def _add_item(self, item):
+        if self._is_viable_item(item):
+            prepared_item = self._prepare_item_for_add(item)
+            if self._item_is_registered(prepared_item):
+                LOGGER.debug('Adding item {}.'.format(item))
+                self._items.append(prepared_item)
+                return 1
         return 0
 
+    def _remove_item(self, item):
+        prepared_item = self._prepare_item_for_remove(item)
+        if self._item_is_registered(prepared_item):
+            LOGGER.debug('Removing item {}.'.format(item))
+            self._items.remove(prepared_item)
+            return 1
+        return 0
+
+    # --------------------------------------------------------------------------
     def get_name(self, item):
         """
         Get the name value for <item>.
@@ -92,11 +112,11 @@ class SimpleFactory(object):
         :param int|float|None version: Version to get. None to get latest.
         :rtype: type|None
         """
-        name_matches = [
+        name_matches = (
             item
             for item in self._items
             if self.get_name(item) == name
-        ]
+        )
         versions = {
             self.get_version(item): item
             for item in name_matches
@@ -155,6 +175,7 @@ class SimpleFactory(object):
         """Clear the registered items."""
         del self._items[:]
 
+    # --------------------------------------------------------------------------
     def register_item(self, item):
         """
         Register <item> with the factory.
@@ -166,11 +187,22 @@ class SimpleFactory(object):
             return True
         return False
 
+    def deregister_item(self, item):
+        """
+        Deregister <item> from the factory.
+        :param type item: Plugin to deregister with the factory.
+        :return: True if <item> was deregistered successfully.
+        :rtype: bool
+        """
+        if self._remove_item(item):
+            return True
+        return False
+
     def register_module(self, module):
         """
         Find and register any viable items found in <module>.
         If <module> is a package, sub-modules are not automatically imported or registered.
-        ModuleTypes in <module> are not registered, only valid items.
+        ModuleTypes in <module> are not checked, only valid items.
         :param ModuleType module: Path to use.
         :return int: Number of registered items.
         """
