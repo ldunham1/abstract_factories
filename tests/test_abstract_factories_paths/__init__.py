@@ -1,5 +1,5 @@
-import os.path
 from unittest.mock import patch
+import os
 import unittest
 
 from .abstract import VehicleAbstract
