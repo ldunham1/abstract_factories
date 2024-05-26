@@ -1,3 +1,4 @@
+import inspect
 import os
 import re
 import sys
@@ -116,6 +117,24 @@ def import_from_filepath(filepath, module_name=None):
     except Exception as e:
         LOGGER.exception('Failed to load from "{}" :: {}.'.format(filepath, e))
     return module
+
+
+def get_source_filepath(obj):
+    """
+    Get the source filepath of <obj>.
+    :param object|type|ModuleType obj: Object to check.
+    :rtype: str
+    """
+    if not inspect.ismodule(obj):
+        return inspect.getfile(obj)
+    elif not inspect.isclass(obj):
+        obj = obj.__class__
+
+    try:
+        source_filepath = inspect.getsourcefile(obj)
+    except TypeError:
+        source_filepath = ''
+    return source_filepath
 
 
 def normalise_path(path):
