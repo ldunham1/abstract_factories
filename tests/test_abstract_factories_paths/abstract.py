@@ -7,6 +7,10 @@ class VehicleAbstract:
         self.model = model
         self.year = year
 
+    @property
+    def name(self):
+        return '{} {}'.format(self.make, self.model)
+
     def start(self):
         raise NotImplementedError("Subclasses must implement the 'start' method.")
 
