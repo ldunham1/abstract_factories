@@ -60,7 +60,7 @@ class SimpleFactory(object):
     def _add_item(self, item):
         if self._is_viable_item(item):
             prepared_item = self._prepare_item_for_add(item)
-            if self._item_is_registered(prepared_item):
+            if not self._item_is_registered(prepared_item):
                 LOGGER.debug('Adding item {}.'.format(item))
                 self._items.append(prepared_item)
                 return 1
