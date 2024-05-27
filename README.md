@@ -1,6 +1,6 @@
 # Abstract Factories
-`abstract_factories` provides functional factory classes extending the 
-loosely based on  Abstract Factory design pattern.
+`abstract_factories` provides functional factory classes that utilise Abstract Factory 
+design pattern with some additional convenience.
 The primary use case is to provide a clear layer of abstraction 
 for scalable data.
 
@@ -15,11 +15,28 @@ for scalable data.
 
 ---
 
-## Overview
 On initialisation, the factory is told which abstract type (class) of items it 
-should register. It is also told how to determine the name (identifier) and optional 
-version. This allows the factory to provide the types or instances it has registered that
-best matches these requirements.
+should register. It is also told how to determine the name identifier and optionally, a 
+version identifier. This allows the factory to determine the registered items that
+best matches base requirements (name and optionally, version).  
+```python
+from abstract_factories import AbstractTypeFactory, AbstractInstanceFactory
+
+class AbstractVehicle(object):
+    def __init__(self, make=None):
+      self.make = make
+  
+    def start(self):
+        raise NotImplementedError()
+
+class Car(AbstractVehicle):
+    def start(self):
+        print('Vrooom...')
+
+type_factory = AbstractTypeFactory(AbstractVehicle)
+type_factory.register_item(Car)
+assert type_factory.get('Car') is Car
+```
 
 ---
 
@@ -28,7 +45,7 @@ The factory is responsible for storing and accessing either abstract subclasses 
 (see `Item Modes`).
 
 For convenience, the Factories can be told where to find the abstract subclasses or subclass 
-instances, which it will attempt to register. 
+instances, which it will attempt to register.  
 Otherwise, items can be registered manually, found within a module or recursively from python 
 files in directory.
 
@@ -39,7 +56,7 @@ Items can be registered with the factories directly.
 
 
 ##### Module Item Registration
-Items can be discovered in any registered modules. 
+Items can be discovered in any registered modules.  
 This is useful where abstract subclasses are packaged with common functionality (utilities etc).
 Only the module's locals are checked, so only items available directly in the registered module are added.
 
@@ -48,9 +65,9 @@ Only the module's locals are checked, so only items available directly in the re
 
 
 ##### Path Item Registration
-Items can be recursively discovered in any registered paths. 
-This is useful where abstract subclasses are independent from each other and is more dynamic in design, for example 
-contextually available functionality for extending a tool.
+Items can be recursively discovered in any registered paths.  
+This is useful where abstract subclasses are independent of each other and is more dynamic in design, for example 
+contextually available functionality for extending a tool.  
 Nested python files are dynamically imported and checked for viable items.
 
 `AbstractTypeFactory.register_path(directory)`
@@ -58,19 +75,34 @@ Nested python files are dynamically imported and checked for viable items.
 
 ---
 
-### Item Modes
-There are 2 convenient factory classes provided for different use cases of abstract_factories. 
+### Types vs Instances
+There are 2 factory classes provided for different use cases of `abstract_factories`. 
 Both have the same interface and functionality, the difference being the format of the 
-item being stored. 
+items being stored. 
 
 ##### AbstractTypeFactory
 Stores abstract subclasses. 
 This is useful when either only classes are needed or multiple 
 instances of each type could be needed but stored elsewhere.
+```python
+type_factory = AbstractTypeFactory(AbstractVehicle)
+type_factory.register_item(Car)
+assert type_factory.get('Car') is Car
+```
 
 ##### AbstractInstanceFactory
 Stores instances of abstract subclasses. 
-This is useful when instances of a type could determine a different version.
+This is useful when instances of a subclass could have different behaviour (ie a different version).
+```python
+instance_factory = AbstractInstanceFactory(AbstractVehicle, name_key='make')
+
+honda = Car('Honda')
+ford = Car('Ford')
+instance_factory.register_item(honda)
+instance_factory.register_item(ford)
+assert instance_factory.get('Honda') is honda
+assert instance_factory.get('Ford') is ford
+```
 
 ---
 
