@@ -47,7 +47,6 @@ Only the module's locals are checked, so only items available directly in the re
 `AbstractInstanceFactory.register_module(module)`
 
 
-
 ##### Path Item Registration
 Items can be recursively discovered in any registered paths. 
 This is useful where abstract subclasses are independent from each other and is more dynamic in design, for example 
@@ -57,15 +56,12 @@ Nested python files are dynamically imported and checked for viable items.
 `AbstractTypeFactory.register_path(directory)`
 `AbstractInstanceFactory.register_path(directory)`
 
-
-
 ---
 
 ### Item Modes
 There are 2 convenient factory classes provided for different use cases of abstract_factories. 
 Both have the same interface and functionality, the difference being the format of the 
 item being stored. 
-
 
 ##### AbstractTypeFactory
 Stores abstract subclasses. 
@@ -83,6 +79,10 @@ This is useful when instances of a type could determine a different version.
 `abstract_factories` can be used to keep on-top of scaling production needs (Film, TV, Games).
 
 ###### Rigging
+For rig building its typical during production to modify rig component behaviours during production (bugfixes, 
+performance improvements or additional features). The typical issue is supporting rig component versions for legacy reasons.
+Here, its relatively trivial to author a new IKChainComponent (subclassed from the old), modify the behaviour and be 
+identified as another version.
 ```python
 class AbstractRigComponent(object):
     Name = 'AbstractRigComponent'
@@ -92,28 +92,28 @@ class AbstractRigComponent(object):
         raise NotImplemented
 
     
-class IKLegComponent(AbstractRigComponent):
-    """Inverse Kinematics (IK) leg rig component."""
-    Name = 'IKLegComponent'
-    Version = 0
+class IKChainComponent(AbstractRigComponent):
+    """Inverse Kinematics (IK) chain rig component."""
+    Name = 'IKChainComponent'
+    Version = 1
 
     def build(self, **kwargs):
         pass
 
     
-class IKLegComponentNew(IKLegComponent):
-    """Newer version of Inverse Kinematics (IK) leg rig component."""
-    Version = 1
+class IKChainComponentNew(IKChainComponent):
+    """Newer version of Inverse Kinematics (IK) chain rig component."""
+    Version = 2
 
     def build(self, **kwargs):
-        super(IKLegComponentNew, self).build(**kwargs)
+        super(IKChainComponentNew, self).build(**kwargs)
         print('Made better.')
 
 
-class FKSpineComponent(AbstractRigComponent):
-    """Forward Kinematics (FK) spine rig component."""
-    Name = 'FKSpineComponent'
-    Version = 0
+class FKChainComponent(AbstractRigComponent):
+    """Forward Kinematics (FK) chain rig component."""
+    Name = 'FKChainComponent'
+    Version = 1
 
     def build(self, **kwargs):
         pass
@@ -123,7 +123,7 @@ class FKSpineComponent(AbstractRigComponent):
 from abstract_factories import AbstractTypeFactory
 from . import components
 
-class MayaRigComponentBuilder(object):
+class RigComponentBuilder(object):
     def __init__(self):
         self.rig_component_factory = AbstractTypeFactory(
             abstract=components.AbstractRigComponent,
@@ -133,14 +133,26 @@ class MayaRigComponentBuilder(object):
         )
     
     def build(self, component_data):
-        # type: (dict[str, dict])
         results = []
-        for component, data in component_data.items():
-            instance = self.rig_component_factory.get(component, version=data.get('version'))
-            instance.build(**data.get('build_data', {}))
+        # Get component classes and create instances.
+        for data in component_data:
+            component = self.rig_component_factory.get(data.pop('type'), version=data.pop('version', None))
+            instance = component()
+            instance.build(**data)
             results.append(instance)
         return results
 
+# Create an instance of the builder and build a rig from some data.
+builder = RigComponentBuilder()
+builder.build(
+    [
+        {'type': 'FKChainComponent', 'name': 'spine'},
+        {'type': 'IKChainComponent', 'name': 'arm', 'side': 'left'},
+        {'type': 'IKChainComponent', 'name': 'arm', 'side': 'right'},
+        {'type': 'IKChainComponent', 'name': 'leg', 'side': 'left', 'version': 2},
+        {'type': 'IKChainComponent', 'name': 'leg', 'side': 'right', 'version': 2},
+    ]
+)
 ```
 
 ---
