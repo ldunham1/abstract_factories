@@ -24,13 +24,40 @@ best matches these requirements.
 ---
 
 ### Registering
-The factory is responsible for storing and accessing either abstract subclasses or their instances ]
+The factory is responsible for storing and accessing either abstract subclasses or their instances 
 (see `Item Modes`).
 
 For convenience, the Factories can be told where to find the abstract subclasses or subclass 
 instances, which it will attempt to register. 
 Otherwise, items can be registered manually, found within a module or recursively from python 
 files in directory.
+
+##### Explicit Item Registration
+Items can be registered with the factories directly.
+`AbstractTypeFactory.register_item(AbstractSubclass)`
+`AbstractInstanceFactory.register_item(AbstractSubclass())`
+
+
+##### Module Item Registration
+Items can be discovered in any registered modules. 
+This is useful where abstract subclasses are packaged with common functionality (utilities etc).
+Only the module's locals are checked, so only items available directly in the registered module are added.
+
+`AbstractTypeFactory.register_module(module)`
+`AbstractInstanceFactory.register_module(module)`
+
+
+
+##### Path Item Registration
+Items can be recursively discovered in any registered paths. 
+This is useful where abstract subclasses are independent from each other and is more dynamic in design, for example 
+contextually available functionality for extending a tool.
+Nested python files are dynamically imported and checked for viable items.
+
+`AbstractTypeFactory.register_path(directory)`
+`AbstractInstanceFactory.register_path(directory)`
+
+
 
 ---
 
