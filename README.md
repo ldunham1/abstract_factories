@@ -1,31 +1,33 @@
 # Abstract Factories
-`abstract_factories` provides functional factory classes that utilise Abstract Factory 
-design pattern with some additional convenience.
-The primary use case is to provide a clear layer of abstraction 
-for scalable data.
+Clean classes to support [Abstract Factory design pattern](https://refactoring.guru/design-patterns/abstract-factory/python/example#example-0) with 
+some additional convenience.  
+The primary use case is to provide a clear layer of abstraction for scalable data 
+in a dynamic environment.
 
 - Tested on Python 3.8 - 3.12
-- Functional on Python 2.7.
-  > Wait - what? Python 2.7? What year is this?
-  >
-  > I have often professionally worked on legacy systems that are too 
-  > fragile or large to realistically update to Python 3.
-  > Providing there's no functional or notable impact in order to 
-  > support 2.7, I have no reason to ignore its existence _yet_.
+- Functional on Python 2.7
+  > Wait - what? Python 2.7? What year is this?  
+  > I often work professionally on legacy systems that are too 
+  > fragile or large to update.
+  > Providing there's no functional or notable impact 
+  > supporting 2.7, I have no reason to ignore its existence _yet_.
 
 ---
 
-On initialisation, the factory is told which abstract type (class) of items it 
-should register. It is also told how to determine the name identifier and optionally, a 
-version identifier. This allows the factory to determine the registered items that
+## Usage:
+Initialise `AbstractTypeFactory`/`AbstractInstanceFactory` with the abstract type to respect.  
+Optionally provide the attribute/method name to identify items by name (and optionally version).
+> If a name identifier is not provided, the subclass name `__name__` is used by default.
+
+This allows the factory to determine the registered items that
 best matches base requirements (name and optionally, version).  
 ```python
 from abstract_factories import AbstractTypeFactory, AbstractInstanceFactory
 
 class AbstractVehicle(object):
     def __init__(self, make=None):
-      self.make = make
-  
+        self.make = make
+
     def start(self):
         raise NotImplementedError()
 
@@ -33,14 +35,24 @@ class Car(AbstractVehicle):
     def start(self):
         print('Vrooom...')
 
+# Type Factory
 type_factory = AbstractTypeFactory(AbstractVehicle)
 type_factory.register_item(Car)
 assert type_factory.get('Car') is Car
+
+# Instance Factory
+honda = Car('Honda')
+ford = Car('Ford')
+instance_factory = AbstractInstanceFactory(AbstractVehicle, name_key='make')
+instance_factory.register_item(honda)
+instance_factory.register_item(ford)
+assert instance_factory.get('Honda') is honda
+assert instance_factory.get('Ford') is ford
 ```
 
 ---
 
-### Registering
+### Registration:
 The factory is responsible for storing and accessing either abstract subclasses or their instances 
 (see `Item Modes`).
 
@@ -49,60 +61,20 @@ instances, which it will attempt to register.
 Otherwise, items can be registered manually, found within a module or recursively from python 
 files in directory.
 
-##### Explicit Item Registration
 Items can be registered with the factories directly.
-`AbstractTypeFactory.register_item(AbstractSubclass)`
-`AbstractInstanceFactory.register_item(AbstractSubclass())`
+- `register_item(AbstractSubclass)`
+- `register_item(AbstractSubclass())`
 
-
-##### Module Item Registration
 Items can be discovered in any registered modules.  
-This is useful where abstract subclasses are packaged with common functionality (utilities etc).
-Only the module's locals are checked, so only items available directly in the registered module are added.
+- `register_module(module)`  
+  Will find and register any viable items found in the module's locals.
 
-`AbstractTypeFactory.register_module(module)`
-`AbstractInstanceFactory.register_module(module)`
-
-
-##### Path Item Registration
 Items can be recursively discovered in any registered paths.  
-This is useful where abstract subclasses are independent of each other and is more dynamic in design, for example 
-contextually available functionality for extending a tool.  
-Nested python files are dynamically imported and checked for viable items.
-
-`AbstractTypeFactory.register_path(directory)`
-`AbstractInstanceFactory.register_path(directory)`
-
----
-
-### Types vs Instances
-There are 2 factory classes provided for different use cases of `abstract_factories`. 
-Both have the same interface and functionality, the difference being the format of the 
-items being stored. 
-
-##### AbstractTypeFactory
-Stores abstract subclasses. 
-This is useful when either only classes are needed or multiple 
-instances of each type could be needed but stored elsewhere.
-```python
-type_factory = AbstractTypeFactory(AbstractVehicle)
-type_factory.register_item(Car)
-assert type_factory.get('Car') is Car
-```
-
-##### AbstractInstanceFactory
-Stores instances of abstract subclasses. 
-This is useful when instances of a subclass could have different behaviour (ie a different version).
-```python
-instance_factory = AbstractInstanceFactory(AbstractVehicle, name_key='make')
-
-honda = Car('Honda')
-ford = Car('Ford')
-instance_factory.register_item(honda)
-instance_factory.register_item(ford)
-assert instance_factory.get('Honda') is honda
-assert instance_factory.get('Ford') is ford
-```
+- `register_path(r'c:/work/tools/my_tool_plugins')`
+- `register_path(r'c:/work/tools/my_tool_plugins/specific_plugin.py')`
+  Will find and register any viable items found in any nested python file from 
+  a dynamic import. This currently has some limitations in terms of relative imports 
+  in these files.
 
 ---
 
