@@ -207,11 +207,7 @@ class _AbstractFactory(object):
         Get the registered items.
         :rtype: list[type|object]
         """
-        results = [
-            self.get(name)
-            for name in self.names()
-        ]
-        return results
+        return list(self._items)
 
     def clear(self):
         """Clear the registered items."""

@@ -58,6 +58,11 @@ class TestTypeFactoryItems(unittest.TestCase):
         self.assertTrue(self.factory.deregister_item(MockItem1))
         self.assertEqual(len(self.factory.items()), 0)
 
+    def test_register_duplicate_item(self):
+        self.assertTrue(self.factory.register_item(MockItem1))
+        self.assertFalse(self.factory.register_item(MockItem1))
+        self.assertEqual(len(self.factory.items()), 1)
+
     def test_get_name(self):
         self.factory.register_item(MockItem1)
         self.assertEqual(self.factory.get_name(MockItem1), 'MockItem1')
@@ -131,6 +136,12 @@ class TestInstanceFactoryItems(unittest.TestCase):
         self.assertTrue(self.factory.deregister_item(instance))
         self.assertEqual(len(self.factory.items()), 0)
 
+    def test_register_duplicate_item(self):
+        instance = MockItem1()
+        self.assertTrue(self.factory.register_item(instance))
+        self.assertFalse(self.factory.register_item(instance))
+        self.assertEqual(len(self.factory.items()), 1)
+
     def test_get_name(self):
         instance = MockItem1()
         self.factory.register_item(instance)
@@ -182,6 +193,31 @@ class TestInstanceFactoryItems(unittest.TestCase):
         self.factory.register_item(instance1)
         self.factory.clear()
         self.assertEqual(len(self.factory.items()), 0)
+
+
+class TestMultiTypeFactoryItems(TestTypeFactoryItems):
+
+    def setUp(self):
+        super(TestMultiTypeFactoryItems, self).setUp()
+        self.factory.UNIQUE_ITEMS = False
+
+    def test_register_duplicate_item(self):
+        self.assertTrue(self.factory.register_item(MockItem1))
+        self.assertTrue(self.factory.register_item(MockItem1))
+        self.assertEqual(len(self.factory.items()), 2)
+
+
+class TestMultiInstanceFactoryItems(TestInstanceFactoryItems):
+
+    def setUp(self):
+        super(TestMultiInstanceFactoryItems, self).setUp()
+        self.factory.UNIQUE_ITEMS = False
+
+    def test_register_duplicate_item(self):
+        instance = MockItem1()
+        self.assertTrue(self.factory.register_item(instance))
+        self.assertTrue(self.factory.register_item(instance))
+        self.assertEqual(len(self.factory.items()), 2)
 
 
 # ------------------------------------------------------------------------------
