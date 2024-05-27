@@ -13,9 +13,28 @@ for scalable data.
   > Providing there's no functional or notable impact in order to 
   > support 2.7, I have no reason to ignore its existence _yet_.
 
+---
 
 ## Overview
+On initialisation, the factory is told which abstract type (class) of items it 
+should register. It is also told how to determine the name (identifier) and optional 
+version. This allows the factory to provide the types or instances it has registered that
+best matches these requirements.
 
+---
+
+### Registering
+The factory is responsible for storing and accessing either abstract subclasses or their instances ]
+(see `Item Modes`).
+
+For convenience, the Factories can be told where to find the abstract subclasses or subclass 
+instances, which it will attempt to register. 
+Otherwise, items can be registered manually, found within a module or recursively from python 
+files in directory.
+
+---
+
+### Item Modes
 There are 2 convenient factory classes provided for different use cases of abstract_factories. 
 Both have the same interface and functionality, the difference being the format of the 
 item being stored. 
@@ -30,14 +49,82 @@ instances of each type could be needed but stored elsewhere.
 Stores instances of abstract subclasses. 
 This is useful when instances of a type could determine a different version.
 
+---
 
-### Examples
+## Practical Applications
+#### Content Creation
+`abstract_factories` can be used to keep on-top of scaling production needs (Film, TV, Games).
+
+###### Rigging
+```python
+class AbstractRigComponent(object):
+    Name = 'AbstractRigComponent'
+    Version = 0
+
+    def build(self, **kwargs):
+        raise NotImplemented
+
+    
+class IKLegComponent(AbstractRigComponent):
+    """Inverse Kinematics (IK) leg rig component."""
+    Name = 'IKLegComponent'
+    Version = 0
+
+    def build(self, **kwargs):
+        pass
+
+    
+class IKLegComponentNew(IKLegComponent):
+    """Newer version of Inverse Kinematics (IK) leg rig component."""
+    Version = 1
+
+    def build(self, **kwargs):
+        super(IKLegComponentNew, self).build(**kwargs)
+        print('Made better.')
+
+
+class FKSpineComponent(AbstractRigComponent):
+    """Forward Kinematics (FK) spine rig component."""
+    Name = 'FKSpineComponent'
+    Version = 0
+
+    def build(self, **kwargs):
+        pass
+
+
+# --------------------------------------------------------------------------
+from abstract_factories import AbstractTypeFactory
+from . import components
+
+class MayaRigComponentBuilder(object):
+    def __init__(self):
+        self.rig_component_factory = AbstractTypeFactory(
+            abstract=components.AbstractRigComponent,
+            modules=[components],
+            name_key='Name', 
+            version_key='Version',
+        )
+    
+    def build(self, component_data):
+        # type: (dict[str, dict])
+        results = []
+        for component, data in component_data.items():
+            instance = self.rig_component_factory.get(component, version=data.get('version'))
+            instance.build(**data.get('build_data', {}))
+            results.append(instance)
+        return results
+
+```
+
+---
+
+## Testing
 `.tests` directory contains examples for;
-
 - Adding, removing & comparing types and instances of items directly.
 - Adding, removing & comparing types and instances of items found in a module.
 - Adding, removing & comparing types and instances of items found recursively in a path.
 
+---
 
-### Influences
+## Further Information
 Abstract factories is influenced by https://github.com/mikemalinowski/factories.
