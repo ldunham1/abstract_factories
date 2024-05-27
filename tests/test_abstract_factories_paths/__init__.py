@@ -14,11 +14,15 @@ except ImportError:
     from unittest.mock import StringIO
 
 
+subclass_directory = os.path.join(os.path.dirname(__file__), 'non_package_directory')
+
+
+# ------------------------------------------------------------------------------
 class TestVehicleTypeFactory(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.VehicleFactory = AbstractTypeFactory(VehicleAbstract, paths=[os.path.dirname(__file__)], name_key='__name__')
+        cls.VehicleFactory = AbstractTypeFactory(VehicleAbstract, paths=[subclass_directory])
 
     def test_get_car(self):
         car = self.VehicleFactory.get('Car')
@@ -62,11 +66,17 @@ class TestVehicleTypeFactory(unittest.TestCase):
         self.assertIsNone(vehicle)
 
 
+# ------------------------------------------------------------------------------
 class TestVehicleInstanceFactory(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.VehicleFactory = AbstractInstanceFactory(VehicleAbstract, paths=[os.path.dirname(__file__)], name_key='name', version_key='year')
+        cls.VehicleFactory = AbstractInstanceFactory(
+            VehicleAbstract,
+            paths=[subclass_directory],
+            name_key='name',
+            version_key='year',
+        )
 
     def test_get_car(self):
         car_instance = self.VehicleFactory.get('Ford Fiesta')

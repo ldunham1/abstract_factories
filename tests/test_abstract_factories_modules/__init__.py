@@ -16,11 +16,12 @@ except ImportError:
     from unittest.mock import StringIO
 
 
+# ------------------------------------------------------------------------------
 class TestVehicleTypeFactory(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.VehicleFactory = AbstractTypeFactory(VehicleAbstract, modules=[vehicles], name_key='__name__')
+        cls.VehicleFactory = AbstractTypeFactory(VehicleAbstract, modules=[vehicles])
 
     def test_get_car(self):
         car = self.VehicleFactory.get('Car')
@@ -64,11 +65,17 @@ class TestVehicleTypeFactory(unittest.TestCase):
         self.assertIsNone(vehicle)
 
 
+# ------------------------------------------------------------------------------
 class TestVehicleInstanceFactory(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.VehicleFactory = AbstractInstanceFactory(VehicleAbstract, modules=[vehicles], name_key='name', version_key='year')
+        cls.VehicleFactory = AbstractInstanceFactory(
+            VehicleAbstract,
+            modules=[vehicles],
+            name_key='name',
+            version_key='year',
+        )
 
     def test_get_car(self):
         car_instance = self.VehicleFactory.get('Ford Fiesta')
