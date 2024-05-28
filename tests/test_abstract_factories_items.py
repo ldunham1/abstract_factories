@@ -20,11 +20,15 @@ class MockItem2(MockAbstract):
     Version = 1.0
 
 
-class MockItem2b(MockAbstract):
-    Name = 'MockItem2'
+class MockItem2b(MockItem2):
     Version = 2.0
 
 
+class MockItem2c(MockItem2):
+    Version = 3.0
+
+
+# ------------------------------------------------------------------------------
 class TestTypeFactoryItems(unittest.TestCase):
 
     def setUp(self):
@@ -72,11 +76,20 @@ class TestTypeFactoryItems(unittest.TestCase):
         self.assertEqual(self.factory.get_version(MockItem2), 1.0)
 
     def test_get(self):
+        self.factory.register_item(MockItem2b)
         self.factory.register_item(MockItem2)
+        self.factory.register_item(MockItem2c)
+
+        self.assertEqual(self.factory.get('MockItem2', version=1.0), MockItem2)
+        self.assertEqual(self.factory.get('MockItem2', version=2.0), MockItem2b)
+        self.assertEqual(self.factory.get('MockItem2', version=3.0), MockItem2c)
+
+    def test_get_latest_version(self):
+        self.factory.register_item(MockItem2)
+        self.factory.register_item(MockItem2c)
         self.factory.register_item(MockItem2b)
 
-        self.assertEqual(self.factory.get('MockItem2'), MockItem2b)
-        self.assertEqual(self.factory.get('MockItem2', version=1.0), MockItem2)
+        self.assertEqual(self.factory.get('MockItem2'), MockItem2c)
 
     def test_names(self):
         self.factory.register_item(MockItem1)
@@ -84,11 +97,20 @@ class TestTypeFactoryItems(unittest.TestCase):
 
         self.assertCountEqual(self.factory.names(), ['MockItem1', 'MockItem2'])
 
-    def test_versions(self):
+    def test_names_versions(self):
+        self.factory.register_item(MockItem1)
         self.factory.register_item(MockItem2)
         self.factory.register_item(MockItem2b)
+        self.factory.register_item(MockItem2c)
 
-        self.assertListEqual(self.factory.versions('MockItem2'), [1.0, 2.0])
+        self.assertCountEqual(self.factory.names(), ['MockItem1', 'MockItem2'])
+
+    def test_versions(self):
+        self.factory.register_item(MockItem2)
+        self.factory.register_item(MockItem2c)
+        self.factory.register_item(MockItem2b)
+
+        self.assertListEqual(self.factory.versions('MockItem2'), [1.0, 2.0, 3.0])
 
     def test_items(self):
         self.factory.register_item(MockItem1)
@@ -102,6 +124,7 @@ class TestTypeFactoryItems(unittest.TestCase):
         self.assertEqual(len(self.factory.items()), 0)
 
 
+# ------------------------------------------------------------------------------
 class TestInstanceFactoryItems(unittest.TestCase):
 
     def setUp(self):
@@ -152,16 +175,32 @@ class TestInstanceFactoryItems(unittest.TestCase):
         self.factory.register_item(instance)
         self.assertEqual(self.factory.get_version(instance), 1.0)
 
+    def test_get_latest_version(self):
+        instance1 = MockItem2()
+        instance2 = MockItem2()
+        instance2.Version = 2.0  # Modify the instance.Version attribute
+        instance3 = MockItem2c()
+
+        self.factory.register_item(instance1)
+        self.factory.register_item(instance3)
+        self.factory.register_item(instance2)
+
+        self.assertEqual(self.factory.get('MockItem2'), instance3)
+        self.assertEqual(self.factory.get('MockItem2', version=None), instance3)
+
     def test_get(self):
         instance1 = MockItem2()
         instance2 = MockItem2()
         instance2.Version = 2.0  # Modify the instance.Version attribute
+        instance3 = MockItem2c()
 
         self.factory.register_item(instance1)
+        self.factory.register_item(instance3)
         self.factory.register_item(instance2)
 
-        self.assertEqual(self.factory.get('MockItem2'), instance2)
         self.assertEqual(self.factory.get('MockItem2', version=1.0), instance1)
+        self.assertEqual(self.factory.get('MockItem2', version=2.0), instance2)
+        self.assertEqual(self.factory.get('MockItem2', version=3.0), instance3)
 
     def test_names(self):
         instance1 = MockItem1()
@@ -171,22 +210,38 @@ class TestInstanceFactoryItems(unittest.TestCase):
 
         self.assertCountEqual(self.factory.names(), ['MockItem1', 'MockItem2'])
 
+    def test_names_versions(self):
+        instance1 = MockItem1()
+        instance2 = MockItem2()
+        instance2b = MockItem2b()
+        instance2c = MockItem2c()
+        self.factory.register_item(instance1)
+        self.factory.register_item(instance2)
+        self.factory.register_item(instance2b)
+        self.factory.register_item(instance2c)
+
+        self.assertCountEqual(self.factory.names(), ['MockItem1', 'MockItem2'])
+
     def test_versions(self):
         instance1 = MockItem2()
         instance2 = MockItem2()
         instance2.Version = 2.0  # Modify the instance.Version attribute
+        instance3 = MockItem2c()
         self.factory.register_item(instance1)
         self.factory.register_item(instance2)
+        self.factory.register_item(instance3)
 
-        self.assertListEqual(self.factory.versions('MockItem2'), [1.0, 2.0])
+        self.assertListEqual(self.factory.versions('MockItem2'), [1.0, 2.0, 3.0])
 
     def test_items(self):
         instance1 = MockItem1()
         instance2 = MockItem2()
+        instance3 = MockItem2c()
         self.factory.register_item(instance1)
         self.factory.register_item(instance2)
+        self.factory.register_item(instance3)
 
-        self.assertCountEqual(self.factory.items(), [instance1, instance2])
+        self.assertCountEqual(self.factory.items(), [instance1, instance2, instance3])
 
     def test_clear(self):
         instance1 = MockItem1()
@@ -195,6 +250,7 @@ class TestInstanceFactoryItems(unittest.TestCase):
         self.assertEqual(len(self.factory.items()), 0)
 
 
+# ------------------------------------------------------------------------------
 class TestMultiTypeFactoryItems(TestTypeFactoryItems):
 
     def setUp(self):
@@ -207,6 +263,7 @@ class TestMultiTypeFactoryItems(TestTypeFactoryItems):
         self.assertEqual(len(self.factory.items()), 2)
 
 
+# ------------------------------------------------------------------------------
 class TestMultiInstanceFactoryItems(TestInstanceFactoryItems):
 
     def setUp(self):
