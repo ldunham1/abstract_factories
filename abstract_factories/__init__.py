@@ -1,10 +1,52 @@
 """
-`abstract_factories` provides functional factory classes extending the
-conventional Abstract Factory design pattern.
-The primary use case is to provide a clear layer of abstraction
-for scalable data.
+Abstract Factories
+==================
 
-Abstract factories is influenced by https://github.com/mikemalinowski/factories.
+A collection of classes to support the Abstract Factory design pattern, providing a clear abstraction
+layer for scalable data in dynamic environments.
+
+This package includes the following main classes:
+
+- `AbstractTypeFactory`: A factory class for instantiating abstract types (classes).
+- `AbstractInstanceFactory`: A factory class for instantiating abstract instances (objects).
+
+Both factories support registration of items directly, from modules, or from paths (filepaths or directories).
+They also optionally support identifying items by name and version.
+
+Practical Applications
+----------------------
+
+This package is particularly useful in scenarios where you need to manage and version various
+components or behaviors, such as in content creation for film, TV, games, or rigging systems.
+
+Example usage:
+
+.. code-block:: python
+
+    >>> from abstract_factories import AbstractTypeFactory, AbstractInstanceFactory
+    >>>
+    >>> class AbstractVehicle(object):
+    ...     def __init__(self, make=None):
+    ...         self.make = make
+    ...
+    ...     def start(self):
+    ...         raise NotImplementedError()
+    >>>
+    >>> class Car(AbstractVehicle):
+    ...     def start(self):
+    ...         print('Vrooom...')
+    >>>
+    >>> # Type Factory
+    >>> type_factory = AbstractTypeFactory(AbstractVehicle)
+    >>> type_factory.register_item(Car)
+    >>> assert type_factory.get('Car') is Car
+    >>>
+    >>> # Instance Factory
+    >>> honda = Car('Honda')
+    >>> instance_factory = AbstractInstanceFactory(AbstractVehicle, name_key='make')
+    >>> instance_factory.register_item(honda)
+    >>> assert instance_factory.get('Honda') is honda
+
 """
 from .constants import LOGGER, FactoryItemModes
 
