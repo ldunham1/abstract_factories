@@ -1,6 +1,9 @@
 # Abstract Factories
 A collection of classes to support the Abstract Factory design pattern, providing a clear abstraction 
-layer for scalable data in dynamic environments.
+layer for scalable data in dynamic environments.  
+
+`abstract_factories` will auto-register viable items from any given python **module** and/or **path**.  
+
 
 - Tested on Python 3.8 - 3.12
 - Functional on Python 2.7
@@ -22,8 +25,47 @@ pip install abstract-factories
 ## Usage
 Initialize AbstractTypeFactory or AbstractInstanceFactory with the abstract type.  
 Optionally, provide the attribute/method name to identify items by name (and optionally version).
+
+Registering items can be done directly.
 ```python
-from abstract_factories import AbstractTypeFactory, AbstractInstanceFactory
+from abstract_factories import AbstractTypeFactory
+
+class AbstractVehicle(object):
+    def start(self):
+        raise NotImplementedError()
+
+class Car(AbstractVehicle):
+    def start(self):
+        print('Vrooom...')
+
+# Type Factory
+type_factory = AbstractTypeFactory(AbstractVehicle)
+type_factory.register_item(Car)
+assert type_factory.get('Car') is Car
+```
+
+
+Or automatically by providing python modules or paths in which the factory can search.
+```python
+from abstract_factories import AbstractTypeFactory
+from . import my_vehicle_package
+
+# Type Factory
+type_factory = AbstractTypeFactory(my_vehicle_package.AbstractVehicle)
+
+# Find any AbstractVehicle subclasses in `my_vehicle_package` and register them.
+type_factory.register_module(my_vehicle_package)
+assert type_factory.get('Car') is my_vehicle_package.Car
+
+# Can also find any AbstractVehicle subclasses in a directory and register those too.
+type_factory.register_path('c:/Users/user/downloads/other_vehicles')
+```
+
+
+In some use-cases, instances are a much better fit for the type of data you want to use in your factory.  
+In that case, use `AbstractInstanceFactory`.
+```python
+from abstract_factories import AbstractInstanceFactory
 
 class AbstractVehicle(object):
     def __init__(self, make=None):
@@ -36,17 +78,13 @@ class Car(AbstractVehicle):
     def start(self):
         print('Vrooom...')
 
-# Type Factory
-type_factory = AbstractTypeFactory(AbstractVehicle)
-type_factory.register_item(Car)
-assert type_factory.get('Car') is Car
-
 # Instance Factory
 honda = Car('Honda')
 instance_factory = AbstractInstanceFactory(AbstractVehicle, name_key='make')
 instance_factory.register_item(honda)
 assert instance_factory.get('Honda') is honda
 ```
+
 
 ### Registration:
 Register viable items directly.
