@@ -8,7 +8,7 @@ with open("README.md") as f:
 setup(
     name='abstract_factories',
     packages=['abstract_factories'],
-    version='0.2.2',
+    version='0.2.3',
     license='MIT',
     description='Abstract Factory design pattern classes for scalable data in dynamic environments.',
     long_description=long_description,
