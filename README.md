@@ -13,7 +13,9 @@ layer for scalable data in dynamic environments.
 ---
 
 ## Installation
-Clone the project locally.
+```bash
+pip install abstract-factories
+```
 
 ---
 
