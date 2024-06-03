@@ -12,6 +12,9 @@ class _AbstractFactory(object):
     Direct interaction with items is also possible, for convenience (whilst contradicting the nature
     of abstract design pattern).
 
+    Class attributes:
+        UNIQUE_ITEMS - Manages whether the factory will store only unique items. Uniqueness is a list membership test (list.__contains__).
+
     :param type abstract: Abstract type to use. Only subclasses of this type will be supported.
     :param list[str]|str|None paths: Path(s) to immediately find abstracts in. Search is recursive.
     :param list[ModuleType]|ModuleType|None modules: Module(s) to immediately find abstracts in. Search is surface level.
@@ -239,7 +242,7 @@ class _AbstractFactory(object):
     def register_module(self, module):
         """
         Find and register any viable items found in <module>.
-        If <module> is a package, sub-modules are not automatically imported or registered.
+        If <module> is a package, submodules are not automatically imported or registered.
         ModuleTypes in <module> are not checked, only valid items.
         :param ModuleType module: Path to use.
         :return int: Number of registered items.
@@ -273,6 +276,17 @@ class _AbstractFactory(object):
 
 # ------------------------------------------------------------------------------
 class AbstractTypeFactory(_AbstractFactory):
+    """
+    AbstractFactory for registering and accessing Types (classes).
+    Useful when instances of registered types are not to be managed by the factory.
+
+    :param type abstract: Abstract type to use. Only subclasses of this type will be supported.
+    :param list[str]|str|None paths: Path(s) to immediately find abstracts in. Search is recursive.
+    :param list[ModuleType]|ModuleType|None modules: Module(s) to immediately find abstracts in. Search is surface level.
+    :param str name_key: Item name identifier. Defaults to class name.
+    :param str version_key: Item version identifier. Defaults to None, where versioning is not supported.
+
+    """
 
     def __init__(self,
                  abstract,
@@ -291,6 +305,17 @@ class AbstractTypeFactory(_AbstractFactory):
 
 
 class AbstractInstanceFactory(_AbstractFactory):
+    """
+    AbstractFactory for registering and accessing instances.
+    Useful when instances are needed to be managed by a factory. This could include a factory of factories for example.
+
+    :param type abstract: Abstract type to use. Only subclasses of this type will be supported.
+    :param list[str]|str|None paths: Path(s) to immediately find abstracts in. Search is recursive.
+    :param list[ModuleType]|ModuleType|None modules: Module(s) to immediately find abstracts in. Search is surface level.
+    :param str name_key: Item name identifier. Defaults to class name.
+    :param str version_key: Item version identifier. Defaults to None, where versioning is not supported.
+
+    """
 
     def __init__(self,
                  abstract,
