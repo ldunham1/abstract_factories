@@ -254,8 +254,12 @@ class TestInstanceFactoryItems(unittest.TestCase):
 class TestMultiTypeFactoryItems(TestTypeFactoryItems):
 
     def setUp(self):
-        super(TestMultiTypeFactoryItems, self).setUp()
-        self.factory.UNIQUE_ITEMS = False
+        self.factory = AbstractTypeFactory(
+            MockAbstract,
+            name_key='Name',
+            version_key='Version',
+            unique_items_only=False,
+        )
 
     def test_register_duplicate_item(self):
         self.assertTrue(self.factory.register_item(MockItem1))
@@ -267,8 +271,12 @@ class TestMultiTypeFactoryItems(TestTypeFactoryItems):
 class TestMultiInstanceFactoryItems(TestInstanceFactoryItems):
 
     def setUp(self):
-        super(TestMultiInstanceFactoryItems, self).setUp()
-        self.factory.UNIQUE_ITEMS = False
+        self.factory = AbstractInstanceFactory(
+            MockAbstract,
+            name_key='Name',
+            version_key='Version',
+            unique_items_only=False,
+        )
 
     def test_register_duplicate_item(self):
         instance = MockItem1()
