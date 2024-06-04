@@ -29,6 +29,32 @@ class MockItem2c(MockItem2):
 
 
 # ------------------------------------------------------------------------------
+class TestCallableIdentifierFactories(unittest.TestCase):
+
+    def test_callable_name_key(self):
+        def get_name(item):
+            return item.Name
+
+        factory = AbstractTypeFactory(MockAbstract, name_key=get_name)
+        factory.register_item(MockItem1)
+        self.assertEqual(factory.get_name(MockItem1), 'MockItem1')
+
+    def test_callable_version_key(self):
+        def get_version(item):
+            return item.Version
+
+        factory = AbstractTypeFactory(MockAbstract, name_key='Name', version_key=get_version)
+        factory.register_item(MockItem2)
+        self.assertEqual(factory.get_version(MockItem2), 1.0)
+
+    def test_callable_keys(self):
+        factory = AbstractTypeFactory(MockAbstract, name_key=lambda item: item.Name, version_key=lambda item: item.Version)
+        factory.register_item(MockItem2)
+        self.assertEqual(factory.get_name(MockItem2), 'MockItem2')
+        self.assertEqual(factory.get_version(MockItem2), 1.0)
+
+
+# ------------------------------------------------------------------------------
 class TestTypeFactoryItems(unittest.TestCase):
 
     def setUp(self):

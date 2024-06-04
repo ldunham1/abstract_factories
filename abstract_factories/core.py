@@ -4,6 +4,10 @@ import types
 from . import utils
 from .constants import LOGGER, FactoryItemModes
 
+# noinspection PyUnreachableCode
+if False:
+    from types import FunctionType
+
 
 # ------------------------------------------------------------------------------
 class _AbstractFactory(object):
@@ -15,8 +19,13 @@ class _AbstractFactory(object):
     :param type abstract: Abstract type to use. Only subclasses of this type will be supported.
     :param list[str]|str|None paths: Path(s) to immediately find abstracts in. Search is recursive.
     :param list[ModuleType]|ModuleType|None modules: Module(s) to immediately find abstracts in. Search is surface level.
-    :param str name_key: Item name identifier. Defaults to class name.
-    :param str version_key: Item version identifier. Defaults to None and versioning will not be supported.
+    :param str|FunctionType name_key: Item name identifier. Defaults to class name.
+        If str given, will get the item's value for that attribute, property or method.
+        If callable given, will expect the callable to accept the item as an argument and will use the returned value.
+    :param str|FunctionType|None version_key: Item version identifier. Defaults to None, where versioning is not supported.
+        If str given, will get the item's value for that attribute, property or method.
+        If callable given, will expect the callable to accept the item as an argument and will use the returned value.
+        If None given, versioning will not be supported (first registered item will only be used).
     :param bool unique_items_only: True to only store unique items, False to support non-unique.
         Uniqueness is a list membership test (list.__contains__).
     :param FactoryItemModes|str item_mode: Factory item mode. Determine they type of Item to store (types or instances).
@@ -121,8 +130,11 @@ class _AbstractFactory(object):
         :param type|object item: Abstract subclass to use.
         :rtype: str
         """
+        if callable(self._name_key):
+            name = self._name_key(item)
+
         # If using instances, defer missing name attributes to the class (ie __name__).
-        if self.item_mode == FactoryItemModes.Instances:
+        elif self.item_mode == FactoryItemModes.Instances:
             name = getattr(item, self._name_key, getattr(type(item), self._name_key, None))
         else:
             name = getattr(item, self._name_key)
@@ -138,17 +150,20 @@ class _AbstractFactory(object):
         if not self._version_key:
             return version
 
-        try:
-            # If using instances, defer missing name attributes to the class.
-            if self.item_mode == FactoryItemModes.Instances:
-                version = getattr(item, self._version_key, getattr(type(item), self._version_key, None))
-            else:
-                version = getattr(item, self._version_key)
-        except AttributeError as e:
-            LOGGER.debug(
-                'Failed to get Version from {} using '
-                'version_identifier "{}" :: {}.'.format(item, self._version_key, e)
-            )
+        if callable(self._version_key):
+            version = self._version_key(item)
+        else:
+            try:
+                # If using instances, defer missing name attributes to the class.
+                if self.item_mode == FactoryItemModes.Instances:
+                    version = getattr(item, self._version_key, getattr(type(item), self._version_key, None))
+                else:
+                    version = getattr(item, self._version_key)
+            except AttributeError as e:
+                LOGGER.debug(
+                    'Failed to get Version from {} using '
+                    'version_identifier "{}" :: {}.'.format(item, self._version_key, e)
+                )
         return version() if callable(version) else version
 
     def get(self, name, version=None):
@@ -286,8 +301,13 @@ class AbstractTypeFactory(_AbstractFactory):
     :param type abstract: Abstract type to use. Only subclasses of this type will be supported.
     :param list[str]|str|None paths: Path(s) to immediately find abstracts in. Search is recursive.
     :param list[ModuleType]|ModuleType|None modules: Module(s) to immediately find abstracts in. Search is surface level.
-    :param str name_key: Item name identifier. Defaults to class name.
-    :param str version_key: Item version identifier. Defaults to None, where versioning is not supported.
+    :param str|FunctionType name_key: Item name identifier. Defaults to class name.
+        If str given, will get the item's value for that attribute, property or method.
+        If callable given, will expect the callable to accept the item as an argument and will use the returned value.
+    :param str|FunctionType|None version_key: Item version identifier. Defaults to None, where versioning is not supported.
+        If str given, will get the item's value for that attribute, property or method.
+        If callable given, will expect the callable to accept the item as an argument and will use the returned value.
+        If None given, versioning will not be supported (first registered item will only be used).
     :param bool unique_items_only: True to only store unique items, False to support non-unique.
         Uniqueness is a list membership test (list.__contains__).
 
@@ -319,8 +339,13 @@ class AbstractInstanceFactory(_AbstractFactory):
     :param type abstract: Abstract type to use. Only subclasses of this type will be supported.
     :param list[str]|str|None paths: Path(s) to immediately find abstracts in. Search is recursive.
     :param list[ModuleType]|ModuleType|None modules: Module(s) to immediately find abstracts in. Search is surface level.
-    :param str name_key: Item name identifier. Defaults to class name.
-    :param str version_key: Item version identifier. Defaults to None, where versioning is not supported.
+    :param str|FunctionType name_key: Item name identifier. Defaults to class name.
+        If str given, will get the item's value for that attribute, property or method.
+        If callable given, will expect the callable to accept the item as an argument and will use the returned value.
+    :param str|FunctionType|None version_key: Item version identifier. Defaults to None, where versioning is not supported.
+        If str given, will get the item's value for that attribute, property or method.
+        If callable given, will expect the callable to accept the item as an argument and will use the returned value.
+        If None given, versioning will not be supported (first registered item will only be used).
     :param bool unique_items_only: True to only store unique items, False to support non-unique.
         Uniqueness is a list membership test (list.__contains__).
 
