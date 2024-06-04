@@ -31,10 +31,21 @@ class _AbstractFactory(object):
                  version_key=None,
                  unique_items_only=True,
                  item_mode=FactoryItemModes.Types):
+        if not inspect.isclass(abstract):
+            raise TypeError('Abstract is required to be a class, received {}.'.format(type(abstract)))
+
         self._abstract = abstract
+
         self._name_key = name_key
         self._version_key = version_key
         self._unique_items_only = unique_items_only
+
+        if item_mode not in (FactoryItemModes.Types, FactoryItemModes.Instances):
+            raise ValueError(
+                'FactoryMode expected to be Mode.Types ({}) or Mode.Instances ({}). '
+                'Received {}.'.format(FactoryItemModes.Types, FactoryItemModes.Instances, self.item_mode)
+            )
+
         self._item_mode = item_mode
 
         self._items = []
@@ -65,17 +76,7 @@ class _AbstractFactory(object):
         return self._item_mode
 
     # --------------------------------------------------------------------------
-    def _test_factory_mode(self):
-        if self.item_mode not in (FactoryItemModes.Types,
-                                  FactoryItemModes.Instances):
-            raise ValueError(
-                'FactoryMode expected to be Mode.Types ({}) or Mode.Instances ({}). '
-                'Received {}.'.format(FactoryItemModes.Types, FactoryItemModes.Instances, self.item_mode)
-            )
-
     def _is_viable_item(self, item):
-        self._test_factory_mode()
-
         if self.item_mode == FactoryItemModes.Types:
             if not inspect.isclass(item):
                 return False
