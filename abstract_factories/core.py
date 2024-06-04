@@ -12,20 +12,16 @@ class _AbstractFactory(object):
     Direct interaction with items is also possible, for convenience (whilst contradicting the nature
     of abstract design pattern).
 
-    Class attributes:
-        UNIQUE_ITEMS - Manages whether the factory will store only unique items. Uniqueness is a list membership test (list.__contains__).
-
     :param type abstract: Abstract type to use. Only subclasses of this type will be supported.
     :param list[str]|str|None paths: Path(s) to immediately find abstracts in. Search is recursive.
     :param list[ModuleType]|ModuleType|None modules: Module(s) to immediately find abstracts in. Search is surface level.
     :param str name_key: Item name identifier. Defaults to class name.
-    :param str version_key: Item version identifier. Defaults to None, where versioning is not supported.
+    :param str version_key: Item version identifier. Defaults to None and versioning will not be supported.
+    :param bool unique_items_only: True to only store unique items, False to support non-unique.
+        Uniqueness is a list membership test (list.__contains__).
     :param FactoryItemModes|str item_mode: Factory item mode. Determine they type of Item to store (types or instances).
 
     """
-
-    # True to only store unique items, False to support non-unique.
-    UNIQUE_ITEMS = True
 
     def __init__(self,
                  abstract,
@@ -33,6 +29,7 @@ class _AbstractFactory(object):
                  modules=None,
                  name_key='__name__',
                  version_key=None,
+                 unique_items_only=True,
                  item_mode=FactoryItemModes.Types):
         if not inspect.isclass(abstract):
             raise TypeError('Abstract is required to be a class, received {}.'.format(type(abstract)))
@@ -41,6 +38,7 @@ class _AbstractFactory(object):
 
         self._name_key = name_key
         self._version_key = version_key
+        self._unique_items_only = unique_items_only
 
         if item_mode not in (FactoryItemModes.Types, FactoryItemModes.Instances):
             raise ValueError(
@@ -68,6 +66,10 @@ class _AbstractFactory(object):
     @property
     def abstract(self):
         return self._abstract
+
+    @property
+    def unique_items_only(self):
+        return self._unique_items_only
 
     @property
     def item_mode(self):
@@ -98,7 +100,7 @@ class _AbstractFactory(object):
 
     def _add_item(self, item):
         if self._is_viable_item(item):
-            if not self.UNIQUE_ITEMS or not self._item_is_registered(item):
+            if not self.unique_items_only or not self._item_is_registered(item):
                 LOGGER.debug('Adding item {}.'.format(item))
                 self._items.append(item)
                 return 1
@@ -286,6 +288,8 @@ class AbstractTypeFactory(_AbstractFactory):
     :param list[ModuleType]|ModuleType|None modules: Module(s) to immediately find abstracts in. Search is surface level.
     :param str name_key: Item name identifier. Defaults to class name.
     :param str version_key: Item version identifier. Defaults to None, where versioning is not supported.
+    :param bool unique_items_only: True to only store unique items, False to support non-unique.
+        Uniqueness is a list membership test (list.__contains__).
 
     """
 
@@ -294,13 +298,15 @@ class AbstractTypeFactory(_AbstractFactory):
                  paths=None,
                  modules=None,
                  name_key='__name__',
-                 version_key=None):
+                 version_key=None,
+                 unique_items_only=True):
         super(AbstractTypeFactory, self).__init__(
             abstract=abstract,
             paths=paths,
             modules=modules,
             name_key=name_key,
             version_key=version_key,
+            unique_items_only=unique_items_only,
             item_mode=FactoryItemModes.Types,
         )
 
@@ -315,6 +321,8 @@ class AbstractInstanceFactory(_AbstractFactory):
     :param list[ModuleType]|ModuleType|None modules: Module(s) to immediately find abstracts in. Search is surface level.
     :param str name_key: Item name identifier. Defaults to class name.
     :param str version_key: Item version identifier. Defaults to None, where versioning is not supported.
+    :param bool unique_items_only: True to only store unique items, False to support non-unique.
+        Uniqueness is a list membership test (list.__contains__).
 
     """
 
@@ -323,12 +331,14 @@ class AbstractInstanceFactory(_AbstractFactory):
                  paths=None,
                  modules=None,
                  name_key='__name__',
-                 version_key=None):
+                 version_key=None,
+                 unique_items_only=True):
         super(AbstractInstanceFactory, self).__init__(
             abstract=abstract,
             paths=paths,
             modules=modules,
             name_key=name_key,
             version_key=version_key,
+            unique_items_only=unique_items_only,
             item_mode=FactoryItemModes.Instances,
         )
