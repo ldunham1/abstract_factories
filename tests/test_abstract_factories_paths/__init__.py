@@ -121,11 +121,24 @@ class TestVehicleInstanceFactory(unittest.TestCase):
         self.assertIsNone(vehicle)
 
 
-class TestVehicleFilepathTypeFactory(TestVehicleTypeFactory):
+# ------------------------------------------------------------------------------
+class TestVehicleTypeFilepathFactory(TestVehicleTypeFactory):
 
     @classmethod
     def setUpClass(cls):
         cls.VehicleFactory = AbstractTypeFactory(VehicleAbstract, paths=[os.path.join(subclass_directory, 'vehicles.py')])
+
+
+class TestVehicleInstanceFilepathFactory(TestVehicleInstanceFactory):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.VehicleFactory = AbstractInstanceFactory(
+            VehicleAbstract,
+            paths=[os.path.join(subclass_directory, 'vehicles.py')],
+            name_key='name',
+            version_key='year',
+        )
 
 
 # ------------------------------------------------------------------------------
