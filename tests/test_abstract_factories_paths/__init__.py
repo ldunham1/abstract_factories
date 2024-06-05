@@ -122,5 +122,25 @@ class TestVehicleInstanceFactory(unittest.TestCase):
 
 
 # ------------------------------------------------------------------------------
+class TestVehicleTypeFilepathFactory(TestVehicleTypeFactory):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.VehicleFactory = AbstractTypeFactory(VehicleAbstract, paths=[os.path.join(subclass_directory, 'vehicles.py')])
+
+
+class TestVehicleInstanceFilepathFactory(TestVehicleInstanceFactory):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.VehicleFactory = AbstractInstanceFactory(
+            VehicleAbstract,
+            paths=[os.path.join(subclass_directory, 'vehicles.py')],
+            name_key='name',
+            version_key='year',
+        )
+
+
+# ------------------------------------------------------------------------------
 if __name__ == '__main__':
     unittest.main(verbosity=1)
