@@ -8,6 +8,19 @@ import uuid
 from .constants import LOGGER
 
 
+try:
+    basestring
+except NameError:
+    basestring = str
+
+
+PYTHON_FILENAME_PATTERN = re.compile(
+    r'[^_ \d]?[\w]*?'   # Doesn't start with number, space or underscore
+    r'\.py[c]?$'        # Ends with .py, .pyc
+)
+
+
+# ------------------------------------------------------------------------------
 # Generate a python version compatible import from file function
 if sys.version_info >= (3, 5):
     import importlib.util
@@ -51,18 +64,7 @@ else:
         return module
 
 
-try:
-    basestring
-except NameError:
-    basestring = str
-
-
-PYTHON_FILENAME_PATTERN = re.compile(
-    r'[^_ \d]?[\w]*?'   # Doesn't start with number, space or underscore
-    r'\.py[c]?$'        # Ends with .py, .pyc
-)
-
-
+# ------------------------------------------------------------------------------
 def is_module(obj):
     """
     Get if <obj> is a module.
@@ -153,7 +155,7 @@ def iter_python_files(path, recursive=True):
     """
     # TODO: Handle .zip python packages.
     if os.path.isfile(path):
-        if PYTHON_FILENAME_PATTERN.match(path):
+        if PYTHON_FILENAME_PATTERN.match(os.path.basename(path)):
             yield normalise_path(path)
     elif os.path.isdir(path):
         for root, _, files in os.walk(path):

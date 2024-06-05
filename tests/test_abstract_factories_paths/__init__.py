@@ -121,6 +121,13 @@ class TestVehicleInstanceFactory(unittest.TestCase):
         self.assertIsNone(vehicle)
 
 
+class TestVehicleFilepathTypeFactory(TestVehicleTypeFactory):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.VehicleFactory = AbstractTypeFactory(VehicleAbstract, paths=[os.path.join(subclass_directory, 'vehicles.py')])
+
+
 # ------------------------------------------------------------------------------
 if __name__ == '__main__':
     unittest.main(verbosity=1)
