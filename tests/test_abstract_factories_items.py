@@ -4,10 +4,14 @@ import unittest
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
+# Monkeypatch python 2.7 unittest.TestCase.
+if sys.version_info[0] == 2:
+    unittest.TestCase.assertCountEqual = unittest.TestCase.assertItemsEqual
+
 from abstract_factories import AbstractTypeFactory, AbstractInstanceFactory
 
 
-class MockAbstract:
+class MockAbstract(object):
     Name = ''
 
 
@@ -69,8 +73,7 @@ class TestTypeFactoryItems(unittest.TestCase):
         self.assertEqual(str(self.factory), "AbstractTypeFactory(items=0)")
 
     def test_private__is_viable_item(self):
-        from unittest.mock import Mock
-        self.assertFalse(self.factory._is_viable_item(Mock))
+        self.assertFalse(self.factory._is_viable_item(object()))
         self.assertFalse(self.factory._is_viable_item(MockAbstract))  # Abstract itself should not be viable.
         self.assertTrue(self.factory._is_viable_item(MockItem1))
 
@@ -165,8 +168,7 @@ class TestInstanceFactoryItems(unittest.TestCase):
         self.assertEqual(str(self.factory), "AbstractInstanceFactory(items=0)")
 
     def test_private__is_viable_item(self):
-        from unittest.mock import Mock
-        self.assertFalse(self.factory._is_viable_item(Mock()))
+        self.assertFalse(self.factory._is_viable_item(object()))
         self.assertFalse(self.factory._is_viable_item(MockAbstract()))  # Abstract itself should not be viable.
         self.assertTrue(self.factory._is_viable_item(MockItem1()))
 
