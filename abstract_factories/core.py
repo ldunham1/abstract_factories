@@ -4,10 +4,6 @@ import types
 from . import utils
 from .constants import LOGGER, FactoryItemModes
 
-# noinspection PyUnreachableCode
-if False:
-    from types import FunctionType
-
 
 # ------------------------------------------------------------------------------
 class _AbstractFactory(object):
@@ -19,10 +15,10 @@ class _AbstractFactory(object):
     :param type abstract: Abstract type to use. Only subclasses of this type will be supported.
     :param list[str]|str|None paths: Path(s) to immediately find abstracts in. Search is recursive.
     :param list[ModuleType]|ModuleType|None modules: Module(s) to immediately find abstracts in. Search is surface level.
-    :param str|FunctionType name_key: Item name identifier. Defaults to class name.
+    :param str|Callable name_key: Item name identifier. Defaults to class name.
         If str given, will get the item's value for that attribute, property or method.
         If callable given, will expect the callable to accept the item as an argument and will use the returned value.
-    :param str|FunctionType|None version_key: Item version identifier. Defaults to None, where versioning is not supported.
+    :param str|Callable|None version_key: Item version identifier. Defaults to None, where versioning is not supported.
         If str given, will get the item's value for that attribute, property or method.
         If callable given, will expect the callable to accept the item as an argument and will use the returned value.
         If None given, versioning will not be supported (first registered item will only be used).
@@ -301,10 +297,10 @@ class AbstractTypeFactory(_AbstractFactory):
     :param type abstract: Abstract type to use. Only subclasses of this type will be supported.
     :param list[str]|str|None paths: Path(s) to immediately find abstracts in. Search is recursive.
     :param list[ModuleType]|ModuleType|None modules: Module(s) to immediately find abstracts in. Search is surface level.
-    :param str|FunctionType name_key: Item name identifier. Defaults to class name.
+    :param str|Callable name_key: Item name identifier. Defaults to class name.
         If str given, will get the item's value for that attribute, property or method.
         If callable given, will expect the callable to accept the item as an argument and will use the returned value.
-    :param str|FunctionType|None version_key: Item version identifier. Defaults to None, where versioning is not supported.
+    :param str|Callable|None version_key: Item version identifier. Defaults to None, where versioning is not supported.
         If str given, will get the item's value for that attribute, property or method.
         If callable given, will expect the callable to accept the item as an argument and will use the returned value.
         If None given, versioning will not be supported (first registered item will only be used).
@@ -339,10 +335,10 @@ class AbstractInstanceFactory(_AbstractFactory):
     :param type abstract: Abstract type to use. Only subclasses of this type will be supported.
     :param list[str]|str|None paths: Path(s) to immediately find abstracts in. Search is recursive.
     :param list[ModuleType]|ModuleType|None modules: Module(s) to immediately find abstracts in. Search is surface level.
-    :param str|FunctionType name_key: Item name identifier. Defaults to class name.
+    :param str|Callable name_key: Item name identifier. Defaults to class name.
         If str given, will get the item's value for that attribute, property or method.
         If callable given, will expect the callable to accept the item as an argument and will use the returned value.
-    :param str|FunctionType|None version_key: Item version identifier. Defaults to None, where versioning is not supported.
+    :param str|Callable|None version_key: Item version identifier. Defaults to None, where versioning is not supported.
         If str given, will get the item's value for that attribute, property or method.
         If callable given, will expect the callable to accept the item as an argument and will use the returned value.
         If None given, versioning will not be supported (first registered item will only be used).
