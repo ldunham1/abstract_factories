@@ -64,6 +64,13 @@ else:
         return module
 
 
+if sys.version_info >= (3, 10):
+    STANDARDLIB_MODULE_NAMES = frozenset(sys.stdlib_module_names)
+else:
+    from stdlib_list import stdlib_list
+    STANDARDLIB_MODULE_NAMES = frozenset(stdlib_list('{}.{}'.format(*sys.version_info)))
+
+
 # ------------------------------------------------------------------------------
 def is_module(obj):
     """
@@ -178,3 +185,38 @@ def iter_python_files(path, recursive=True):
     else:
         LOGGER.error('iter_python_files >> {} is not an existing file or directory.'.format(path))
         return
+
+
+def module_is_standardlib(module):
+    """
+    Get if the module is part of the standard python library.
+    :param ModuleType module: Module to test.
+    :rtype: bool
+    """
+    module_name = module.__name__.split('.', 1)[0]
+    return module_name in STANDARDLIB_MODULE_NAMES
+
+
+def iter_python_modules(module, recursive=False, _seen=None):
+    """
+    Iterate the python modules found in <module>.
+    If <module> is a directory, iterate nested python files.
+    :param ModuleType module: Root module to find nested modules in.
+    :param bool recursive: True to iterate recursively.
+    :rtype: Generator[ModuleType]
+    """
+    if not isinstance(module, types.ModuleType):
+        LOGGER.error('iter_python_modules >> {} is not a ModuleType.'.format(module))
+        return
+
+    _seen = _seen or set()
+    if module in _seen:
+        return
+
+    _seen.add(module)
+    for value in module.__dict__.values():
+        if isinstance(value, types.ModuleType):
+            yield value
+            if recursive and value not in _seen:
+                for submodule in iter_python_modules(value, recursive, _seen=_seen):
+                    yield submodule
