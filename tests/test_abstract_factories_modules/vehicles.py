@@ -1,4 +1,5 @@
 from .abstract import VehicleAbstract
+from . import additional_vehicles
 
 
 class Car(VehicleAbstract):

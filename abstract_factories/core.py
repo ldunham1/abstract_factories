@@ -1,3 +1,4 @@
+from itertools import filterfalse
 import inspect
 import types
 
@@ -53,7 +54,7 @@ class _AbstractFactory(object):
 
         self._item_mode = item_mode
 
-        self._items = []
+        self._items = []  # type: list[abstract]
 
         if paths:
             for path in utils.ensure_iterable(paths):
@@ -253,12 +254,14 @@ class _AbstractFactory(object):
             return True
         return False
 
-    def register_module(self, module):
+    def register_module(self, module, recursive=False):
         """
         Find and register any viable items found in <module>.
         If <module> is a package, submodules are not automatically imported or registered.
         ModuleTypes in <module> are not checked, only valid items.
         :param ModuleType module: Path to use.
+        :param bool|None recursive: True to search nested available modules.
+            False to only search <module> locals.
         :return int: Number of registered items.
         """
         count = 0
@@ -266,8 +269,24 @@ class _AbstractFactory(object):
         if not isinstance(module, types.ModuleType):
             return count
 
+        # Allow internal filtering to deal with non-compatible types.
         for item in module.__dict__.values():
             count += self._add_item(item)
+
+        if recursive:
+
+            # High level module collection to avoid infinite recursion and simplify debugging.
+            additional_modules = set(
+                filterfalse(
+                    utils.module_is_standardlib,
+                    utils.iter_python_modules(module, recursive=recursive),
+                )
+            )
+            if module in additional_modules:
+                additional_modules.remove(module)
+
+            for additional_module in additional_modules:
+                self.register_module(additional_module, recursive=False)
 
         return count
 
@@ -275,11 +294,11 @@ class _AbstractFactory(object):
         """
         Find and register any viable items found in <path>.
         :param str path: Path to use.
-        :param bool recursive: True to search nested directories. False to only search immediate files.
+        :param bool|None recursive: True to search nested directories.
+            False to only search immediate files.
         :return int: Number of registered items.
         """
         count = 0
-
         for filepath in utils.iter_python_files(path, recursive=recursive):
             module = utils.import_from_path(filepath)
             if module:
