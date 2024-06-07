@@ -160,17 +160,33 @@ assert instance_factory.get('Honda') is honda
 ```
 
 ### Registration:
+
+##### Items:
 Register viable items directly.
+> See `./tests/test_abstract_factories_items.py` for examples.
 - `type_factory.register_item(AbstractSubclass)`
 - `instance_factory.register_item(AbstractSubclass())`
 
-Find and register any viable items found in the module's locals.
-- `type_factory/instance_factory.register_module(module)`  
 
-Find and register any viable items found in any nested python file from a dynamic 
-import. Some limitation using relative imports.  
-- `type_factory/instance_factory.register_path(r'c:/tools/tool_plugins')`
+##### Modules:
+Find and register any viable items found directly in the module's locals.  
+Optionally, you can enable recursive searching with the `recursive` argument. 
+Any additionally imported module in the registered module will be registered also.
+> See `./tests/test_abstract_factories_modules` for examples.
+- `type_factory/instance_factory.register_module(module)`  
+- `type_factory/instance_factory.register_module(module, recursive=True)`  
+
+
+##### Paths:
+Find and register any viable items found in any nested python file from a dynamic import.  
+Python files with relative imports loaded this way will fail due to dynamic importing. 
+If you want/need to use relative imports, it's recommended to use `register_module` 
+method instead for the time being.  
+Optionally, you can disable recursive searching with the `recursive` argument.
+> See `./tests/test_abstract_factories_paths` for examples.
 - `type_factory/instance_factory.register_path(r'c:/tools/tool_plugins/plugin.py')`
+- `type_factory/instance_factory.register_path(r'c:/tools/tool_plugins')`
+- `type_factory/instance_factory.register_path(r'c:/tools/tool_plugins', recursive=False)`  
 
 
 ## Additional
