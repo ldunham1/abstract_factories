@@ -169,17 +169,13 @@ Register viable items directly.
 
 
 ##### Modules:
-
-##### Modules:
 Find and register any viable items found directly in the module's locals.  
 Optionally, you can enable recursive searching with the `recursive` argument. 
 Any additionally imported module in the registered module will be registered also.
 > See `./tests/test_abstract_factories_modules` for examples.
 - `type_factory/instance_factory.register_module(module)`  
-- `type_factory/instance_factory.register_module(module, recursive=True)`  
+- `type_factory/instance_factory.register_module(module, recursive=True)`
 
-
-##### Paths:
 
 ##### Paths:
 Find and register any viable items found in any nested python file from a dynamic import.  
