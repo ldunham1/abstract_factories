@@ -32,13 +32,16 @@ Registering items can be done directly.
 ```python
 from abstract_factories import AbstractTypeFactory
 
+
 class AbstractVehicle(object):
     def start(self):
         raise NotImplementedError()
 
+
 class Car(AbstractVehicle):
     def start(self):
         print('Vrooom...')
+
 
 # Type Factory
 type_factory = AbstractTypeFactory(AbstractVehicle)
@@ -53,6 +56,7 @@ Abstract factories can automatically register items found in given python module
 ```python
 from abstract_factories import AbstractTypeFactory
 from . import my_vehicle_package
+
 
 # Type Factory
 type_factory = AbstractTypeFactory(my_vehicle_package.AbstractVehicle)
@@ -71,6 +75,7 @@ In that case, use `AbstractInstanceFactory`.
 ```python
 from abstract_factories import AbstractInstanceFactory
 
+
 class AbstractVehicle(object):
     def __init__(self, make=None):
         self.make = make
@@ -78,9 +83,11 @@ class AbstractVehicle(object):
     def start(self):
         raise NotImplementedError()
 
+
 class Car(AbstractVehicle):
     def start(self):
         print('Vrooom...')
+
 
 # Instance Factory
 honda = Car('Honda')
@@ -105,57 +112,20 @@ import. Some limitation using relative imports.
 ---
 
 ## Practical Applications
-### Content Creation
-Useful for managing production needs in Film, TV, and Games, allowing easy modifications and versioning of components.
+Some examples of practical applications for `abstract_factories` in a production environment.
 
-#### Rigging
-Easily support and modify rig component behaviours during production.
-```python
-import sys
-from abstract_factories import AbstractTypeFactory
+### Data Validation and Contextual Modification
+Use multiple factories together to design scalable Validation, Publishing, Batching, Playlist 
+etc frameworks.  
+The simplicity of this design allows for quick iteration during development, conditional 
+validation, scalability and more.  
+See the [simple_validation](examples/simple_validation) example.
 
-class AbstractRigComponent:
-    Name = 'AbstractRigComponent'
-    Version = 0
 
-    def build(self, **kwargs):
-        raise NotImplementedError()
-
-class IKChainComponent(AbstractRigComponent):
-    Name = 'IKChainComponent'
-    Version = 1
-
-    def build(self, **kwargs):
-        pass
-
-# --------------------------------------------------------------------------
-class RigComponentBuilder:
-    def __init__(self):
-        self.factory = AbstractTypeFactory(
-            abstract=AbstractRigComponent,
-            modules=[sys.modules[__name__]],
-            name_key='Name',
-            version_key='Version'
-        )
-
-    def build(self, component_data):
-        results = []
-        for data in component_data:
-            component = self.factory.get(
-                data.pop('type'), 
-                version=data.pop('version', None),
-            )
-            instance = component()
-            instance.build(**data)
-            results.append(instance)
-        return results
-
-builder = RigComponentBuilder()
-builder.build([
-    {'type': 'IKChainComponent', 'name': 'arm'},
-    {'type': 'IKChainComponent', 'name': 'leg', 'version': 2},
-])
-```
+### Content Creation - Rigging
+Useful for managing production needs in Film, TV, and Games, allowing easy modifications and versioning of components.  
+Easily support and modify rig component behaviours during production.  
+See the [rig_factory](examples/rig_factory) example.
 
 ## Advanced: 
 These topics are for more advanced usage of `abstract_factories`.

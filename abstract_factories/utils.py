@@ -140,8 +140,16 @@ def get_source_filepath(obj):
 
 
 def normalise_path(path):
-    # type: (str) -> str
-    return os.path.normcase(os.path.normpath(os.path.realpath(path))).replace(os.sep, os.altsep)
+    """
+    Expand and normalise <path> to its real path.
+    os.sep is replaced with os.altsep (where applicable).
+    :param str path: Path to normalise.
+    :rtype: str
+    """
+    norm_path = os.path.normcase(os.path.normpath(os.path.realpath(path)))
+    if os.altsep:
+        norm_path = norm_path.replace(os.sep, os.altsep)
+    return norm_path
 
 
 def iter_python_files(path, recursive=True):
