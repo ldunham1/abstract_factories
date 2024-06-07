@@ -115,122 +115,17 @@ import. Some limitation using relative imports.
 Some examples of practical applications for `abstract_factories` in a production environment.
 
 ### Data Validation and Contextual Modification
-Using multiple factories together to manage different aspects of Validation, Publishing, Batching or Playlist 
-framework.
-
-```python
-class AbstractCollector(object):
-    name = 'AbstractCollector'
-    version = 1
-
-    def collect(self):
-        raise NotImplementedError('collect')
+Use multiple factories together to design scalable Validation, Publishing, Batching, Playlist 
+etc frameworks.  
+The simplicity of this design allows for quick iteration during development, conditional 
+validation, scalability and more.  
+See the [simple_validation](examples/simple_validation) example.
 
 
-class AbstractValidator(object):
-    name = 'AbstractValidator'
-    version = 1
-
-    def validate(self, context):
-        raise NotImplementedError('validate')
-
-    def reason(self, context):
-        raise NotImplementedError('reason')
-```
-
-```python
-import logging
-
-from abstract_factories import AbstractInstanceFactory
-from . import abstracts, collectors, validators
-
-
-class DataValidator(object):
-    def __init__(self):
-        self.collector_factory = AbstractInstanceFactory(
-            abstract=abstracts.AbstractCollector,
-            modules=[collectors],
-            name_key='name',
-            version_key='version'
-        )
-        self.validator_factory = AbstractInstanceFactory(
-            abstract=abstracts.AbstractValidator,
-            modules=[validators],
-            name_key='name',
-            version_key='version'
-        )
-
-    def validate(self, data_list=None):
-        data_list = data_list or (data 
-                                  for collector in self.collector_factory.items() 
-                                  for data in collector.collect())
-        for data in data_list:
-            for validator in self.validator_factory.items():
-                if not validator.validate(data):
-                    logging.error(f'{validator} validation failed for {data} :: {validator.reason(data)}')
-
-
-validator = DataValidator()
-validator.validate()
-```
-
-
-### Content Creation
-Useful for managing production needs in Film, TV, and Games, allowing easy modifications and versioning of components.
-
-#### Rigging
-Easily support and modify rig component behaviours during production.
-```python
-import sys
-
-from abstract_factories import AbstractTypeFactory
-
-
-class AbstractRigComponent:
-    Name = 'AbstractRigComponent'
-    Version = 0
-
-    def build(self, **kwargs):
-        raise NotImplementedError()
-
-    
-class IKChainComponent(AbstractRigComponent):
-    Name = 'IKChainComponent'
-    Version = 1
-
-    def build(self, **kwargs):
-        pass
-
-    
-# --------------------------------------------------------------------------
-class RigComponentBuilder:
-    def __init__(self):
-        self.factory = AbstractTypeFactory(
-            abstract=AbstractRigComponent,
-            modules=[sys.modules[__name__]],
-            name_key='Name',
-            version_key='Version'
-        )
-
-    def build(self, component_data):
-        results = []
-        for data in component_data:
-            component = self.factory.get(
-                data.pop('type'), 
-                version=data.pop('version', None),
-            )
-            instance = component()
-            instance.build(**data)
-            results.append(instance)
-        return results
-
-
-builder = RigComponentBuilder()
-builder.build([
-    {'type': 'IKChainComponent', 'name': 'arm'},
-    {'type': 'IKChainComponent', 'name': 'leg', 'version': 2},
-])
-```
+### Content Creation - Rigging
+Useful for managing production needs in Film, TV, and Games, allowing easy modifications and versioning of components.  
+Easily support and modify rig component behaviours during production.  
+See the [rig_factory](examples/rig_factory) example.
 
 ## Advanced: 
 These topics are for more advanced usage of `abstract_factories`.
