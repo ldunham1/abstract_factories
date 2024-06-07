@@ -32,13 +32,16 @@ Registering items can be done directly.
 ```python
 from abstract_factories import AbstractTypeFactory
 
+
 class AbstractVehicle(object):
     def start(self):
         raise NotImplementedError()
 
+
 class Car(AbstractVehicle):
     def start(self):
         print('Vrooom...')
+
 
 # Type Factory
 type_factory = AbstractTypeFactory(AbstractVehicle)
@@ -53,6 +56,7 @@ Abstract factories can automatically register items found in given python module
 ```python
 from abstract_factories import AbstractTypeFactory
 from . import my_vehicle_package
+
 
 # Type Factory
 type_factory = AbstractTypeFactory(my_vehicle_package.AbstractVehicle)
@@ -71,6 +75,7 @@ In that case, use `AbstractInstanceFactory`.
 ```python
 from abstract_factories import AbstractInstanceFactory
 
+
 class AbstractVehicle(object):
     def __init__(self, make=None):
         self.make = make
@@ -78,9 +83,11 @@ class AbstractVehicle(object):
     def start(self):
         raise NotImplementedError()
 
+
 class Car(AbstractVehicle):
     def start(self):
         print('Vrooom...')
+
 
 # Instance Factory
 honda = Car('Honda')
@@ -105,6 +112,69 @@ import. Some limitation using relative imports.
 ---
 
 ## Practical Applications
+Some examples of practical applications for `abstract_factories` in a production environment.
+
+### Data Validation and Contextual Modification
+Using multiple factories together to manage different aspects of Validation, Publishing, Batching or Playlist 
+framework.
+
+```python
+class AbstractCollector(object):
+    name = 'AbstractCollector'
+    version = 1
+
+    def collect(self):
+        raise NotImplementedError('collect')
+
+
+class AbstractValidator(object):
+    name = 'AbstractValidator'
+    version = 1
+
+    def validate(self, context):
+        raise NotImplementedError('validate')
+
+    def reason(self, context):
+        raise NotImplementedError('reason')
+```
+
+```python
+import logging
+
+from abstract_factories import AbstractInstanceFactory
+from . import abstracts, collectors, validators
+
+
+class DataValidator(object):
+    def __init__(self):
+        self.collector_factory = AbstractInstanceFactory(
+            abstract=abstracts.AbstractCollector,
+            modules=[collectors],
+            name_key='name',
+            version_key='version'
+        )
+        self.validator_factory = AbstractInstanceFactory(
+            abstract=abstracts.AbstractValidator,
+            modules=[validators],
+            name_key='name',
+            version_key='version'
+        )
+
+    def validate(self, data_list=None):
+        data_list = data_list or (data 
+                                  for collector in self.collector_factory.items() 
+                                  for data in collector.collect())
+        for data in data_list:
+            for validator in self.validator_factory.items():
+                if not validator.validate(data):
+                    logging.error(f'{validator} validation failed for {data} :: {validator.reason(data)}')
+
+
+validator = DataValidator()
+validator.validate()
+```
+
+
 ### Content Creation
 Useful for managing production needs in Film, TV, and Games, allowing easy modifications and versioning of components.
 
@@ -112,7 +182,9 @@ Useful for managing production needs in Film, TV, and Games, allowing easy modif
 Easily support and modify rig component behaviours during production.
 ```python
 import sys
+
 from abstract_factories import AbstractTypeFactory
+
 
 class AbstractRigComponent:
     Name = 'AbstractRigComponent'
@@ -121,6 +193,7 @@ class AbstractRigComponent:
     def build(self, **kwargs):
         raise NotImplementedError()
 
+    
 class IKChainComponent(AbstractRigComponent):
     Name = 'IKChainComponent'
     Version = 1
@@ -128,6 +201,7 @@ class IKChainComponent(AbstractRigComponent):
     def build(self, **kwargs):
         pass
 
+    
 # --------------------------------------------------------------------------
 class RigComponentBuilder:
     def __init__(self):
@@ -149,6 +223,7 @@ class RigComponentBuilder:
             instance.build(**data)
             results.append(instance)
         return results
+
 
 builder = RigComponentBuilder()
 builder.build([
