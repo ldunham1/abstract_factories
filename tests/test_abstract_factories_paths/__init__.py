@@ -26,6 +26,8 @@ class TestVehicleTypeFactory(unittest.TestCase):
 
     def test_get_car(self):
         car = self.VehicleFactory.get('Car')
+        self.assertIsNotNone(car)
+
         car_instance = car('Toyota', 'Camry', 2020)
         with patch('sys.stdout', new=StringIO()) as fake_out:
             car_instance.start()
@@ -35,6 +37,8 @@ class TestVehicleTypeFactory(unittest.TestCase):
 
     def test_get_truck(self):
         truck = self.VehicleFactory.get('Truck')
+        self.assertIsNotNone(truck)
+
         truck_instance = truck('Ford', 'F-150', 2018)
         with patch('sys.stdout', new=StringIO()) as fake_out:
             truck_instance.start()
@@ -44,6 +48,8 @@ class TestVehicleTypeFactory(unittest.TestCase):
 
     def test_get_truck2(self):
         truck = self.VehicleFactory.get('Truck2')
+        self.assertIsNotNone(truck)
+
         truck_instance = truck('Ford', 'F-150', 2018)
         with patch('sys.stdout', new=StringIO()) as fake_out:
             truck_instance.start()
@@ -54,6 +60,8 @@ class TestVehicleTypeFactory(unittest.TestCase):
 
     def test_get_motorcycle(self):
         motorcycle = self.VehicleFactory.get('Motorcycle')
+        self.assertIsNotNone(motorcycle)
+
         motorcycle_instance = motorcycle('Honda', 'CBR600RR', 2022)
         with patch('sys.stdout', new=StringIO()) as fake_out:
             motorcycle_instance.start()
@@ -80,6 +88,8 @@ class TestVehicleInstanceFactory(unittest.TestCase):
 
     def test_get_car(self):
         car_instance = self.VehicleFactory.get('Ford Fiesta')
+        self.assertIsNotNone(car_instance)
+
         with patch('sys.stdout', new=StringIO()) as fake_out:
             car_instance.start()
             car_instance.stop()
@@ -88,6 +98,8 @@ class TestVehicleInstanceFactory(unittest.TestCase):
 
     def test_get_truck(self):
         truck_instance = self.VehicleFactory.get('Ford F-150')
+        self.assertIsNotNone(truck_instance)
+
         with patch('sys.stdout', new=StringIO()) as fake_out:
             truck_instance.start()
             truck_instance.stop()
@@ -97,6 +109,8 @@ class TestVehicleInstanceFactory(unittest.TestCase):
 
     def test_get_truck_alt_version(self):
         truck_instance = self.VehicleFactory.get('Ford F-150', version=2018)
+        self.assertIsNotNone(truck_instance)
+
         with patch('sys.stdout', new=StringIO()) as fake_out:
             truck_instance.start()
             truck_instance.stop()
@@ -105,6 +119,8 @@ class TestVehicleInstanceFactory(unittest.TestCase):
 
     def test_get_motorcycle(self):
         motorcycle_instance = self.VehicleFactory.get('Yamaha R3')
+        self.assertIsNotNone(motorcycle_instance)
+
         with patch('sys.stdout', new=StringIO()) as fake_out:
             motorcycle_instance.start()
             motorcycle_instance.stop()
@@ -114,6 +130,7 @@ class TestVehicleInstanceFactory(unittest.TestCase):
     def test_get_motorcycles(self):
         for name in ['Yamaha R3', 'Honda CBR']:
             motorcycle_instance = self.VehicleFactory.get(name)
+            self.assertIsNotNone(motorcycle_instance)
             self.assertTrue(motorcycle_instance)
 
     def test_get_non_existent_vehicle(self):
