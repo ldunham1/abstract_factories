@@ -281,7 +281,7 @@ class _AbstractFactory(object):
         count = 0
 
         for filepath in utils.iter_python_files(path, recursive=recursive):
-            module = utils.import_from_filepath(filepath)
+            module = utils.import_from_path(filepath)
             if module:
                 count += self.register_module(module)
 
