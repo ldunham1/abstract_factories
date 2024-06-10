@@ -1,5 +1,6 @@
 import inspect
 import os
+import pkgutil
 import re
 import sys
 import types
@@ -53,7 +54,7 @@ else:
     import imp
 
     def _import_from_filepath(module_name, filepath):
-        ext = os.path.splitext(filepath)[1]
+        ext = os.path.splitext(filepath)[-1]
         if ext == '.py':
             module = imp.load_source(module_name, filepath)
         elif ext == '.pyc':
@@ -62,6 +63,26 @@ else:
         else:
             raise ImportError('File type "{}" not supported (.py or .pyc only).'.format(ext))
         return module
+
+
+def _import_from_package(module_name, filepath, package):
+    if os.path.isfile(filepath):
+        filepath = os.path.splitext(filepath)[0]
+
+    root_path, name = os.path.split(filepath)
+    for _ in range(package.count('.') + 1):
+        root_path = os.path.dirname(root_path)
+
+    sys.path.append(root_path)
+    module_path = package + '.' + name
+    try:
+        importlib.import_module(module_path)
+        module = sys.modules.pop(module_path)
+        module.__name__ = module_name
+        sys.modules[module_name] = module
+    finally:
+        sys.path.pop()
+    return module
 
 
 # ------------------------------------------------------------------------------
@@ -102,7 +123,37 @@ def generate_unique_name_from_filepath(filepath):
     return '{}_{}'.format(filename, uuid.uuid4().hex)
 
 
-def import_from_filepath(filepath, module_name=None):
+def find_import_path(path):
+    """
+    Find the longest, viable import path from <path>.
+
+    .. code-block:: python
+
+        >>> find_import_path('D:/Projects/abstract_factories/tests/test_abstract_factories_paths/packaged_directory')
+        'tests.test_abstract_factories_paths.packaged_directory'
+        >>> find_import_path('D:/Projects/abstract_factories/tests/test_abstract_factories_paths/packaged_directory/vehicles.py')
+        'tests.test_abstract_factories_paths.packaged_directory.vehicles'
+
+    :param str path: Directory or filepath to use.
+    :rtype: str
+    """
+    parts = []
+
+    def build_import_path(directory_, name_, check_module):
+        for importer, modname, is_package in pkgutil.walk_packages([directory_]):
+            if modname == name_ and check_module != is_package:
+                parts.append(modname)
+                build_import_path(*os.path.split(directory_), check_module=False)
+
+    is_module = os.path.isfile(path)
+    directory, name = os.path.split(path)
+    if is_module:
+        name = os.path.splitext(name)[0]
+    build_import_path(directory, name, check_module=is_module)
+    return '.'.join(reversed(parts[1:])) if parts else ''
+
+
+def import_from_path(filepath, module_name=None):
     """
     Import <filepath> as a ModuleType called <module_name> (auto-generated if None given).
     :param str filepath: Filepath to import as module.
@@ -111,9 +162,13 @@ def import_from_filepath(filepath, module_name=None):
     """
     module_name = module_name or generate_unique_name_from_filepath(filepath)
     module = None
+    package = find_import_path(filepath)
     try:
         LOGGER.debug('Loading "{}" into modulename "{}".'.format(filepath, module_name))
-        module = _import_from_filepath(module_name, filepath)
+        if package:
+            module = _import_from_package(module_name, filepath, package)
+        else:
+            module = _import_from_filepath(module_name, filepath)
         if not module:
             raise TypeError('Only .py and .pyc files are supported. Received "{}".'.format(filepath))
     except Exception as e:
