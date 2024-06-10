@@ -73,13 +73,26 @@ def _import_from_package(module_name, filepath, package):
     for _ in range(package.count('.') + 1):
         root_path = os.path.dirname(root_path)
 
-    sys.path.append(root_path)
     module_path = package + '.' + name
+
+    # We ensure the package itself is discoverable for import.
+    sys.path.append(root_path)
+    module_already_available = module_path in sys.modules
     try:
+        # TODO: Currently only modifies module name on surface level (unlike `imp.load_source'/SourceFileLoader etc).
+        #  This creates some disparity between loading as a file or via a package.
+        #  One option could be to duplicate the given file as the desired name and import that to ensure the module
+        #  name matches but this again could lead to unexpected issues when being used elsewhere.
+
+        # Import the fully resolved module name then reassign it to our given name.
         importlib.import_module(module_path)
-        module = sys.modules.pop(module_path)
+        module = sys.modules[module_path]
+
+        # Remove the module if it wasn't already available
+        if not module_already_available:
+            sys.modules.pop(module_path)
+
         module.__name__ = module_name
-        sys.modules[module_name] = module
     finally:
         sys.path.pop()
     return module
