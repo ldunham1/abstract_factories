@@ -14,7 +14,14 @@ except ImportError:
     from unittest.mock import StringIO
 
 
-subclass_directory = os.path.join(os.path.dirname(__file__), 'non_package_directory')
+directories = [
+    os.path.join(os.path.dirname(__file__), 'non_package_directory'),
+    # os.path.join(os.path.dirname(__file__), 'package_directory'),
+]
+filepaths = [
+    os.path.join(directory, 'vehicle.py')
+    for directory in directories
+]
 
 
 # ------------------------------------------------------------------------------
@@ -22,7 +29,7 @@ class TestVehicleTypeFactory(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.VehicleFactory = AbstractTypeFactory(VehicleAbstract, paths=[subclass_directory])
+        cls.VehicleFactory = AbstractTypeFactory(VehicleAbstract, paths=directories)
 
     def test_get_car(self):
         car = self.VehicleFactory.get('Car')
@@ -73,7 +80,7 @@ class TestVehicleInstanceFactory(unittest.TestCase):
     def setUpClass(cls):
         cls.VehicleFactory = AbstractInstanceFactory(
             VehicleAbstract,
-            paths=[subclass_directory],
+            paths=directories,
             name_key='name',
             version_key='year',
         )
@@ -126,7 +133,7 @@ class TestVehicleTypeFilepathFactory(TestVehicleTypeFactory):
 
     @classmethod
     def setUpClass(cls):
-        cls.VehicleFactory = AbstractTypeFactory(VehicleAbstract, paths=[os.path.join(subclass_directory, 'vehicles.py')])
+        cls.VehicleFactory = AbstractTypeFactory(VehicleAbstract, paths=filepaths)
 
 
 class TestVehicleInstanceFilepathFactory(TestVehicleInstanceFactory):
@@ -135,7 +142,7 @@ class TestVehicleInstanceFilepathFactory(TestVehicleInstanceFactory):
     def setUpClass(cls):
         cls.VehicleFactory = AbstractInstanceFactory(
             VehicleAbstract,
-            paths=[os.path.join(subclass_directory, 'vehicles.py')],
+            paths=filepaths,
             name_key='name',
             version_key='year',
         )
