@@ -14,7 +14,7 @@ except ImportError:
     from unittest.mock import StringIO
 
 
-subclass_directory = os.path.join(os.path.dirname(__file__), 'non_package_directory')
+_path_test_resource_directory = os.path.dirname(__file__)
 
 
 # ------------------------------------------------------------------------------
@@ -22,7 +22,10 @@ class TestVehicleTypeFactory(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.VehicleFactory = AbstractTypeFactory(VehicleAbstract, paths=[subclass_directory])
+        cls.VehicleFactory = AbstractTypeFactory(
+            VehicleAbstract,
+            paths=[os.path.join(_path_test_resource_directory, 'non_package_directory')],
+        )
 
     def test_get_car(self):
         car = self.VehicleFactory.get('Car')
@@ -74,6 +77,27 @@ class TestVehicleTypeFactory(unittest.TestCase):
         self.assertIsNone(vehicle)
 
 
+class TestVehicleTypePackagedFactory(TestVehicleTypeFactory):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.VehicleFactory = AbstractTypeFactory(
+            VehicleAbstract,
+            paths=[os.path.join(_path_test_resource_directory, 'package_directory')],
+        )
+
+    def test_get_pedalo_truck(self):
+        pedalo_truck = self.VehicleFactory.get('PedaloTruck')
+        self.assertIsNotNone(pedalo_truck)
+
+        pedalo_truck_instance = pedalo_truck('SunFun', 'Sand', 1989)
+        with patch('sys.stdout', new=StringIO()) as fake_out:
+            pedalo_truck_instance.start()
+            pedalo_truck_instance.stop()
+        self.assertEqual(fake_out.getvalue(), "Starting 1989 SunFun pedalo.\n"
+                                              "Stopping 1989 SunFun pedalo.\n")
+
+
 # ------------------------------------------------------------------------------
 class TestVehicleInstanceFactory(unittest.TestCase):
 
@@ -81,7 +105,7 @@ class TestVehicleInstanceFactory(unittest.TestCase):
     def setUpClass(cls):
         cls.VehicleFactory = AbstractInstanceFactory(
             VehicleAbstract,
-            paths=[subclass_directory],
+            paths=[os.path.join(_path_test_resource_directory, 'non_package_directory')],
             name_key='name',
             version_key='year',
         )
@@ -138,12 +162,45 @@ class TestVehicleInstanceFactory(unittest.TestCase):
         self.assertIsNone(vehicle)
 
 
+class TestVehicleInstancePackagedFactory(TestVehicleInstanceFactory):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.VehicleFactory = AbstractInstanceFactory(
+            VehicleAbstract,
+            paths=[os.path.join(_path_test_resource_directory, 'package_directory')],
+            name_key='name',
+            version_key='year',
+        )
+
+    def test_get_pedalo_truck(self):
+        pedalo_truck_instance = self.VehicleFactory.get('SunFun Sand')
+        self.assertIsNotNone(pedalo_truck_instance)
+
+        with patch('sys.stdout', new=StringIO()) as fake_out:
+            pedalo_truck_instance.start()
+            pedalo_truck_instance.stop()
+        self.assertEqual(fake_out.getvalue(), "Starting 1989 SunFun pedalo.\n"
+                                              "Stopping 1989 SunFun pedalo.\n")
+
+
 # ------------------------------------------------------------------------------
 class TestVehicleTypeFilepathFactory(TestVehicleTypeFactory):
 
     @classmethod
     def setUpClass(cls):
-        cls.VehicleFactory = AbstractTypeFactory(VehicleAbstract, paths=[os.path.join(subclass_directory, 'vehicles.py')])
+        cls.VehicleFactory = AbstractTypeFactory(
+            VehicleAbstract,
+            paths=[os.path.join(_path_test_resource_directory, 'non_package_directory', 'vehicles.py')],
+        )
+
+
+class TestVehicleTypeFilepathPackagedFactory(TestVehicleTypePackagedFactory):
+
+    @classmethod
+    def setUpClass(cls):
+        super(TestVehicleTypeFilepathPackagedFactory, cls).setUpClass()
+        cls.VehicleFactory.register_path(os.path.join(_path_test_resource_directory, 'package_directory', 'relative_vehicles.py'))
 
 
 class TestVehicleInstanceFilepathFactory(TestVehicleInstanceFactory):
@@ -152,12 +209,20 @@ class TestVehicleInstanceFilepathFactory(TestVehicleInstanceFactory):
     def setUpClass(cls):
         cls.VehicleFactory = AbstractInstanceFactory(
             VehicleAbstract,
-            paths=[os.path.join(subclass_directory, 'vehicles.py')],
+            paths=[os.path.join(_path_test_resource_directory, 'non_package_directory', 'vehicles.py')],
             name_key='name',
             version_key='year',
         )
 
 
+class TestVehicleInstanceFilepathPackagedFactory(TestVehicleInstancePackagedFactory):
+
+    @classmethod
+    def setUpClass(cls):
+        super(TestVehicleInstanceFilepathPackagedFactory, cls).setUpClass()
+        cls.VehicleFactory.register_path(os.path.join(_path_test_resource_directory, 'package_directory', 'relative_vehicles.py'))
+
+
 # ------------------------------------------------------------------------------
 if __name__ == '__main__':
-    unittest.main(verbosity=1)
+    unittest.main(verbosity=2)
