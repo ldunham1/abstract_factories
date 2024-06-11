@@ -4,35 +4,87 @@
 ![Python 2.7 Version](https://img.shields.io/badge/python-2.7-blue)
 ![Python 3 Versions](https://img.shields.io/pypi/pyversions/pybadges.svg)
 
-A collection of classes to support [Abstract Factory](https://refactoring.guru/design-patterns/abstract-factory) 
-design, but with convenience.  
-The Abstract Factory design lends itself well to systems that need to scale quickly and safely.  
+[Abstract Factory](https://refactoring.guru/design-patterns/abstract-factory) lends itself well to systems that 
+need to scale quickly and safely, allowing users to build and interact with code constructs through names.  
+Typically, additional functionality is required to ensure this design fits into a framework well, and even more work 
+to allow for speedy iteration and development.  
+
+`abstract_factories` is a collection of classes to support this design with those additional conveniences built-in.
+- automatic (dynamic) registration from paths or modules
+- simple or conditional querying
+- versioning  
+- type or instance items
+
+and more. 
 
 
+## Example Usage
 
-#### Simple Examples
+### Tool Versioning
+Imagine you have a simple action you want to apply, already using the Abstract Factory design.
+```python
+from .abstracts import ActionAbstract
 
-##### Rigging Framework
-See example [rig factory](https://github.com/ldunham1/abstract_factories/tree/main/examples/rig_factory).  
+class DemoAction(ActionAbstract):
+    Version = 1
+
+    def apply(self):
+        print('Applied Demo.')
+```
+
+You then need to create a new action that addresses a bug BUT its old behavior is still required in places.  
+You can use `abstract_factories` to provide the correct version contextually.
+```python
+from .abstracts import ActionAbstract
+
+class MyAction(ActionAbstract):
+    Version = 2
+
+    def apply(self):
+        logging.info('Applied Demo.')
+```
+
+Now we just create a tool factory and tell it where to find these tools.
+```python
+import abstract_factories
+from .abstracts import ActionAbstract
+from . import actions
+
+tool_factory = abstract_factories.AbstractTypeFactory(ActionAbstract, version_key='Version')
+tool_factory.register_module(actions)
+
+demo_action = tool_factory.get('DemoAction')  # Automatically retrieves latest.
+old_demo_action = tool_factory.get('DemoAction', version=1)
+```
+
+
+### Rigging Frameworks
+See [rig factory](https://github.com/ldunham1/abstract_factories/tree/main/examples/rig_factory).  
 Rig components can often be updated to address bugs, improve performance or introduce features.  
 A common unintentional side effect is introducing behavioural regressions or different results.  
 
-This approach encourages the use of versioning to "soft-lock" rig components so when a change is necessary, it 
-can be done whilst maintaining the current implementation. The new rig component version is used by default, but 
-the previous versions are still immediately accessible for use. 
+`abstract_factories` encourages the use of versioning to "soft-lock" components so when a change is necessary, it 
+can be done safely. The new rig component version is used by default, but the previous versions are still accessible at 
+the same time. 
 Better yet, the Abstract Factory design simplifies serialization and deserialization of the data, so older 
 rigs can still be built as they were whilst being aware of the potential to upgrade.
 
 
-##### Asset Validation (Files, Rigs, Models, Animations etc)
-See [simple_validation](https://github.com/ldunham1/abstract_factories/tree/main/examples/simple_validation) example.  
+### Validation Frameworks (Files, Rigs, Models, Animations etc)
+See [simple_validation](https://github.com/ldunham1/abstract_factories/tree/main/examples/simple_validation).  
 Asset validation is relatively simple to implement, but increasingly difficult to manage during a production.  
+Some validation frameworks, like [Pyblish](https://pyblish.com/) manages this well.  
 
+`abstract_factories` provides the minimum required to build your own similar Validation framework. Its 
+item auto-registration provides a very flexible environment to quickly develop, improve, iterate and scale 
+as you see fit.
 
 
 ## Installation
 Clone this repo or access it from PyPI;  
-`pip install abstract-factories`
+```bash
+pip install abstract-factories
+```
 
 
 ## Usage
