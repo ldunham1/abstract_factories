@@ -1,28 +1,91 @@
 # Abstract Factories 
-[![PyPI - Version](https://img.shields.io/pypi/v/abstract-factories)](https://pypi.org/project/abstract-factories/) [![Actions Status](https://github.com/ldunham1/abstract_factories/actions/workflows/python-package.yml/badge.svg)](https://github.com/ldunham1/abstract_factories/actions)
+[![PyPI - Version](https://img.shields.io/pypi/v/abstract-factories)](https://pypi.org/project/abstract-factories/) [![Actions Status](https://github.com/ldunham1/abstract_factories/actions/workflows/python-package.yml/badge.svg)](https://github.com/ldunham1/abstract_factories/actions)  
 
-A collection of classes to support the Abstract Factory design pattern, providing a clear abstraction 
-layer for scalable data in dynamic environments.  
+![Python 2.7 Version](https://img.shields.io/badge/python-2.7-blue)
+![Python 3 Versions](https://img.shields.io/pypi/pyversions/pybadges.svg)
 
-`abstract_factories` will auto-register viable items from any given python **module** and/or **path**.  
+[Abstract Factory](https://refactoring.guru/design-patterns/abstract-factory) lends itself well to systems that 
+need to scale quickly and safely, allowing users to build and interact with code constructs through names.  
+Typically, additional functionality is required to ensure this design fits into a framework well, and even more work 
+to allow for speedy iteration and development.  
+
+`abstract_factories` is a collection of classes to support this design with those additional conveniences built-in.
+- automatic (dynamic) registration from paths or modules
+- simple or conditional querying
+- versioning  
+- type or instance items
+
+and more. 
 
 
-- Tested on Python 3.7 - 3.12
-- Functional on Python 2.7
-  > Wait - what? Python 2.7? What year is this?  
-  > I often work professionally on legacy systems that are too 
-  > fragile or large to update.
-  > Providing there's no functional or notable impact 
-  > supporting 2.7, I have no reason to ignore its existence _yet_.
+## Example Usage
 
----
+### Tool Versioning
+Imagine you have a simple action you want to apply, already using the Abstract Factory design.
+```python
+from .abstracts import ActionAbstract
+
+class DemoAction(ActionAbstract):
+    Version = 1
+
+    def apply(self):
+        print('Applied Demo.')
+```
+
+You then need to create a new action that addresses a bug BUT its old behavior is still required in places.  
+You can use `abstract_factories` to provide the correct version contextually.
+```python
+from .abstracts import ActionAbstract
+
+class MyAction(ActionAbstract):
+    Version = 2
+
+    def apply(self):
+        logging.info('Applied Demo.')
+```
+
+Now we just create a tool factory and tell it where to find these tools.
+```python
+import abstract_factories
+from .abstracts import ActionAbstract
+from . import actions
+
+tool_factory = abstract_factories.AbstractTypeFactory(ActionAbstract, version_key='Version')
+tool_factory.register_module(actions)
+
+demo_action = tool_factory.get('DemoAction')  # Automatically retrieves latest.
+old_demo_action = tool_factory.get('DemoAction', version=1)
+```
+
+
+### Rigging Frameworks
+See [rig factory](https://github.com/ldunham1/abstract_factories/tree/main/examples/rig_factory).  
+Rig components can often be updated to address bugs, improve performance or introduce features.  
+A common unintentional side effect is introducing behavioural regressions or different results.  
+
+`abstract_factories` encourages the use of versioning to "soft-lock" components so when a change is necessary, it 
+can be done safely. The new rig component version is used by default, but the previous versions are still accessible at 
+the same time. 
+Better yet, the Abstract Factory design simplifies serialization and deserialization of the data, so older 
+rigs can still be built as they were whilst being aware of the potential to upgrade.
+
+
+### Validation Frameworks (Files, Rigs, Models, Animations etc)
+See [simple_validation](https://github.com/ldunham1/abstract_factories/tree/main/examples/simple_validation).  
+Asset validation is relatively simple to implement, but increasingly difficult to manage during a production.  
+Some validation frameworks, like [Pyblish](https://pyblish.com/) manages this well.  
+
+`abstract_factories` provides the minimum required to build your own similar Validation framework. Its 
+item auto-registration provides a very flexible environment to quickly develop, improve, iterate and scale 
+as you see fit.
+
 
 ## Installation
+Clone this repo or access it from PyPI;  
 ```bash
 pip install abstract-factories
 ```
 
----
 
 ## Usage
 Initialize AbstractTypeFactory or AbstractInstanceFactory with an abstract type.  
@@ -109,46 +172,18 @@ import. Some limitation using relative imports.
 - `type_factory/instance_factory.register_path(r'c:/tools/tool_plugins')`
 - `type_factory/instance_factory.register_path(r'c:/tools/tool_plugins/plugin.py')`
 
----
 
-## Practical Applications
-Some examples of practical applications for `abstract_factories` in a production environment.
-
-### Data Validation and Contextual Modification
-Use multiple factories together to design scalable Validation, Publishing, Batching, Playlist 
-etc frameworks.  
-The simplicity of this design allows for quick iteration during development, conditional 
-validation, scalability and more.  
-See the [simple_validation](examples/simple_validation) example.
-
-
-### Content Creation - Rigging
-Useful for managing production needs in Film, TV, and Games, allowing easy modifications and versioning of components.  
-Easily support and modify rig component behaviours during production.  
-See the [rig_factory](examples/rig_factory) example.
-
-## Advanced: 
-These topics are for more advanced usage of `abstract_factories`.
+## Additional
 
 ### Contextual `get`:
 Instead of a `str` type `name_key` or `version_key` value, you can instead provide a callable. This will be used to 
 determine each item's name and/or version.  
 This is especially useful when the context of an item's name or version lies outside the Factory's remit.  
-> ! Warning: A conditional `name_key` or `version_key` may result in unexpected behaviour if not managed correctly.
 
----
-
-## Testing
-`.tests/` directory contains examples for;
-- Adding, removing & comparing items directly.
-- Adding, removing & comparing items found in modules and/or paths.
-
----
 
 ## Further Information
 Abstract factories is influenced by https://github.com/mikemalinowski/factories.
 
----
 
 ## License
 This project is licensed under the MIT License.
