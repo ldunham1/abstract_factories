@@ -7,10 +7,12 @@ rig component versions, as latest versions should be used by default but
 earlier versions should still be accessible when needed.
 
 This is made easy with the Type Factory.
-Intentionally grouping AbstractRigComponent subclasses by class name 
-promotes the good practice of ensuring component versions are not from the 
-same module (reduces risk of accidental modification and easier to debug) and 
-then sorts by their Version identifier.
+AbstractRigComponent subclasses are grouped by their Name parameter.
+A viable option would also be to group by class name to promote the good 
+practice of ensuring component versions are not from the same 
+module (reduces risk of accidental modification and easier to debug).
+Grouped subclasses (items) are sorted by their Version identifier.
+
 The `factory.get()` method will return the latest versioned item, unless a 
 version value is given.
 
