@@ -6,10 +6,14 @@ class IKChainComponent(AbstractRigComponent):
     Version = 1
 
     def build(self, **kwargs):
-        print('Built {}v{}.'.format(self.Name, self.Version))
+        print('Built {}.'.format(self))
 
 
 class IKChainComponentNew(IKChainComponent):
+    """
+    Subclassing abstract subclasses also works (for 
+    convenience).
+    """
     Version = 2
 
     def build(self, **kwargs):
