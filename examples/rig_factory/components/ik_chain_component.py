@@ -1,17 +1,30 @@
 from rig_factory.abstracts import AbstractRigComponent
 
 
-class IKChainComponent(AbstractRigComponent):
+class AbstractIKComponent(AbstractRigComponent):
+    Name = 'AbstractIKComponent'
+    Version = 1
+
+    # Dont register this class
+    Registerable = False
+
+    def build(self, **kwargs):
+        print('Built {}.'.format(self))
+
+
+class IKChainComponent(AbstractIKComponent):
     Name = 'IKChainComponent'
     Version = 1
 
+    # Register this class and its subclasses
+    Registerable = True
+
     def build(self, **kwargs):
-        print('Built {}v{}.'.format(self.Name, self.Version))
+        super(IKChainComponent, self).build(**kwargs)
 
 
-class IKChainComponentNew(IKChainComponent):
+class IKChainComponentJacobian(IKChainComponent):
     Version = 2
 
     def build(self, **kwargs):
-        super(IKChainComponentNew, self).build(**kwargs)
-        print('Additional changes.')
+        super(IKChainComponentJacobian, self).build(**kwargs)
