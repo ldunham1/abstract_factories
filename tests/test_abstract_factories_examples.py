@@ -48,14 +48,31 @@ class TestExampleRigBuilder(unittest.TestCase):
     def test_init(self):
         self.assertIsNotNone(self.Builder)
 
+    def test_register(self):
+        self.assertCountEqual(
+            self.Builder.available_components(),
+            ['FKChainComponent', 'IKChainComponent'],  # AbstractIKComponent
+        )
+
+        # Check the AbstractIKComponent was not registered
+        debug_builder = RigComponentBuilder(_debug=True)
+        self.assertCountEqual(
+            debug_builder.available_components(),
+            ['AbstractIKComponent', 'FKChainComponent', 'IKChainComponent']
+        )
+
     def test_build(self):
         build_data =[
-            {'type': 'IKChainComponent', 'name': 'arm'},
+            {'type': 'FKChainComponent', 'name': 'arm'},
+            {'type': 'IKChainComponent', 'name': 'spine'},
             {'type': 'IKChainComponent', 'name': 'leg', 'version': 1},
         ]
         components = self.Builder.build(build_data)
-        self.assertEqual(len(components), 2)
-        self.assertCountEqual([str(comp) for comp in components], ['IKChainComponent(v=2)', 'IKChainComponent(v=1)'])
+        self.assertEqual(len(components), 3)
+        self.assertCountEqual(
+            [str(comp) for comp in components],
+            ['FKChainComponent(v=2)', 'IKChainComponent(v=2)', 'IKChainComponent(v=1)'],
+        )
 
 
 # ------------------------------------------------------------------------------
