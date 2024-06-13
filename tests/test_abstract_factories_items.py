@@ -19,6 +19,23 @@ class MockItem1(MockAbstract):
     Name = 'MockItem1'
 
 
+class MockItemUnregisterable(MockAbstract):
+    Name = 'MockItemUnregisterable'
+    Registerable = False
+
+    def is_viable(self):
+        return 'Unregisterable' not in self.Name
+
+
+class MockItemRegisterable(MockItemUnregisterable):
+    Name = 'MockItemRegisterable'
+    Registerable = True
+
+
+class MockItemAlsoUnregisterable(MockItemRegisterable):
+    Name = 'MockItemInstanceUnregisterable'
+
+
 class MockItem2(MockAbstract):
     Name = 'MockItem2'
     Version = 1.0
@@ -51,18 +68,43 @@ class TestCallableIdentifierFactories(unittest.TestCase):
         factory.register_item(MockItem2)
         self.assertEqual(factory.get_version(MockItem2), 1.0)
 
-    def test_callable_keys(self):
-        factory = AbstractTypeFactory(MockAbstract, name_key=lambda item: item.Name, version_key=lambda item: item.Version)
+    def test_callable_registerable_key(self):
+        def get_registerable(item):
+            return item.__name__ != 'MockItem2'
+
+        factory = AbstractTypeFactory(MockAbstract, name_key='Name', registerability_key=get_registerable)
         factory.register_item(MockItem2)
+        self.assertEqual(len(factory.items()), 0)
+        factory.register_item(MockItem1)
+        self.assertEqual(len(factory.items()), 1)
+
+    def test_callable_keys(self):
+        factory = AbstractTypeFactory(
+            MockAbstract,
+            name_key=lambda item: item.Name,
+            version_key=lambda item: item.Version,
+            registerability_key=lambda item: item.__name__ != 'MockItem1',
+        )
+        factory.register_item(MockItem2)
+        self.assertEqual(len(factory.items()), 1)
         self.assertEqual(factory.get_name(MockItem2), 'MockItem2')
         self.assertEqual(factory.get_version(MockItem2), 1.0)
+
+        factory.register_item(MockItem1)
+        self.assertEqual(len(factory.items()), 1)
+        self.assertIsNone(factory.get('MockItem1'))
 
 
 # ------------------------------------------------------------------------------
 class TestTypeFactoryItems(unittest.TestCase):
 
     def setUp(self):
-        self.factory = AbstractTypeFactory(MockAbstract, name_key='Name', version_key='Version')
+        self.factory = AbstractTypeFactory(
+            MockAbstract,
+            name_key='Name',
+            version_key='Version',
+            registerability_key='Registerable',
+        )
 
     def test_init(self):
         self.assertIsInstance(self.factory, AbstractTypeFactory)
@@ -79,6 +121,14 @@ class TestTypeFactoryItems(unittest.TestCase):
 
     def test_register_item(self):
         self.assertTrue(self.factory.register_item(MockItem1))
+        self.assertEqual(len(self.factory.items()), 1)
+
+    def test_register_unregisterable_item(self):
+        self.assertFalse(self.factory.register_item(MockItemUnregisterable))
+        self.assertEqual(len(self.factory.items()), 0)
+
+    def test_register_registerable_item(self):
+        self.assertTrue(self.factory.register_item(MockItemRegisterable))
         self.assertEqual(len(self.factory.items()), 1)
 
     def test_register_wrong_item_type(self):
@@ -157,7 +207,12 @@ class TestTypeFactoryItems(unittest.TestCase):
 class TestInstanceFactoryItems(unittest.TestCase):
 
     def setUp(self):
-        self.factory = AbstractInstanceFactory(MockAbstract, name_key='Name', version_key='Version')
+        self.factory = AbstractInstanceFactory(
+            MockAbstract,
+            name_key='Name',
+            version_key='Version',
+            registerability_key='is_viable',
+        )
 
     def test_init(self):
         self.assertIsInstance(self.factory, AbstractInstanceFactory)
@@ -174,6 +229,20 @@ class TestInstanceFactoryItems(unittest.TestCase):
 
     def test_register_item(self):
         instance = MockItem1()
+        self.assertTrue(self.factory.register_item(instance))
+        self.assertEqual(len(self.factory.items()), 1)
+
+    def test_register_unregisterable_item(self):
+        instance1 = MockItemUnregisterable()
+        self.assertFalse(self.factory.register_item(instance1))
+        self.assertEqual(len(self.factory.items()), 0)
+
+        instance2 = MockItemAlsoUnregisterable()
+        self.assertFalse(self.factory.register_item(instance2))
+        self.assertEqual(len(self.factory.items()), 0)
+
+    def test_register_registerable_item(self):
+        instance = MockItemRegisterable()
         self.assertTrue(self.factory.register_item(instance))
         self.assertEqual(len(self.factory.items()), 1)
 
@@ -286,6 +355,7 @@ class TestMultiTypeFactoryItems(TestTypeFactoryItems):
             MockAbstract,
             name_key='Name',
             version_key='Version',
+            registerability_key='Registerable',
             unique_items_only=False,
         )
 
@@ -303,6 +373,7 @@ class TestMultiInstanceFactoryItems(TestInstanceFactoryItems):
             MockAbstract,
             name_key='Name',
             version_key='Version',
+            registerability_key='is_viable',
             unique_items_only=False,
         )
 

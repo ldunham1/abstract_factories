@@ -88,7 +88,10 @@ class _AbstractFactory(object):
         return self._item_mode
 
     # --------------------------------------------------------------------------
-    def _registerability_check(self, item):
+    def _item_is_registered(self, item):
+        return item in self._items
+
+    def _item_is_registerable(self, item):
         if not self._registerability_key:
             return True
 
@@ -119,10 +122,7 @@ class _AbstractFactory(object):
             elif not isinstance(item, self._abstract):
                 return False
 
-        return self._registerability_check(item)
-
-    def _item_is_registered(self, item):
-        return item in self._items
+        return self._item_is_registerable(item)
 
     def _add_item(self, item):
         if self._is_viable_item(item):
@@ -325,6 +325,11 @@ class AbstractTypeFactory(_AbstractFactory):
         If str given, will get the item's value for that attribute, property or method.
         If callable given, will expect the callable to accept the item as an argument and will use the returned value.
         If None given, versioning will not be supported (first registered item will only be used).
+    :param str|Callable|None registerability_key: Item registration identifier. Defaults to None, where
+        item registerability checks are not performed.
+        If str given, will get the item's value for that attribute, property or method.
+        If callable given, will expect the callable to accept the item as an argument and will use the returned value.
+        If None given, item registerability checks are not performed.
     :param bool unique_items_only: True to only store unique items, False to support non-unique.
         Uniqueness is a list membership test (list.__contains__).
 
@@ -336,6 +341,7 @@ class AbstractTypeFactory(_AbstractFactory):
                  modules=None,
                  name_key='__name__',
                  version_key=None,
+                 registerability_key=None,
                  unique_items_only=True):
         super(AbstractTypeFactory, self).__init__(
             abstract=abstract,
@@ -343,6 +349,7 @@ class AbstractTypeFactory(_AbstractFactory):
             modules=modules,
             name_key=name_key,
             version_key=version_key,
+            registerability_key=registerability_key,
             unique_items_only=unique_items_only,
             item_mode=FactoryItemModes.Types,
         )
@@ -363,6 +370,11 @@ class AbstractInstanceFactory(_AbstractFactory):
         If str given, will get the item's value for that attribute, property or method.
         If callable given, will expect the callable to accept the item as an argument and will use the returned value.
         If None given, versioning will not be supported (first registered item will only be used).
+    :param str|Callable|None registerability_key: Item registration identifier. Defaults to None, where
+        item registerability checks are not performed.
+        If str given, will get the item's value for that attribute, property or method.
+        If callable given, will expect the callable to accept the item as an argument and will use the returned value.
+        If None given, item registerability checks are not performed.
     :param bool unique_items_only: True to only store unique items, False to support non-unique.
         Uniqueness is a list membership test (list.__contains__).
 
@@ -374,6 +386,7 @@ class AbstractInstanceFactory(_AbstractFactory):
                  modules=None,
                  name_key='__name__',
                  version_key=None,
+                 registerability_key=None,
                  unique_items_only=True):
         super(AbstractInstanceFactory, self).__init__(
             abstract=abstract,
@@ -381,6 +394,7 @@ class AbstractInstanceFactory(_AbstractFactory):
             modules=modules,
             name_key=name_key,
             version_key=version_key,
+            registerability_key=registerability_key,
             unique_items_only=unique_items_only,
             item_mode=FactoryItemModes.Instances,
         )
