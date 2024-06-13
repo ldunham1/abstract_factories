@@ -22,6 +22,11 @@ class _AbstractFactory(object):
         If str given, will get the item's value for that attribute, property or method.
         If callable given, will expect the callable to accept the item as an argument and will use the returned value.
         If None given, versioning will not be supported (first registered item will only be used).
+    :param str|Callable|None registerability_key: Item registration identifier. Defaults to None, where
+        item registerability checks are not performed.
+        If str given, will get the item's value for that attribute, property or method.
+        If callable given, will expect the callable to accept the item as an argument and will use the returned value.
+        If None given, item registerability checks are not performed.
     :param bool unique_items_only: True to only store unique items, False to support non-unique.
         Uniqueness is a list membership test (list.__contains__).
     :param FactoryItemModes|str item_mode: Factory item mode. Determine they type of Item to store (types or instances).
@@ -34,6 +39,7 @@ class _AbstractFactory(object):
                  modules=None,
                  name_key='__name__',
                  version_key=None,
+                 registerability_key=None,
                  unique_items_only=True,
                  item_mode=FactoryItemModes.Types):
         if not inspect.isclass(abstract):
@@ -43,6 +49,7 @@ class _AbstractFactory(object):
 
         self._name_key = name_key
         self._version_key = version_key
+        self._registerability_key = registerability_key
         self._unique_items_only = unique_items_only
 
         if item_mode not in (FactoryItemModes.Types, FactoryItemModes.Instances):
@@ -81,6 +88,20 @@ class _AbstractFactory(object):
         return self._item_mode
 
     # --------------------------------------------------------------------------
+    def _registerability_check(self, item):
+        if not self._registerability_key:
+            return True
+
+        if callable(self._registerability_key):
+            result = self._registerability_key(item)
+
+        # If using instances, defer missing viability attributes to the class.
+        elif self.item_mode == FactoryItemModes.Instances:
+            result = getattr(item, self._registerability_key, getattr(type(item), self._registerability_key, True))
+        else:
+            result = getattr(item, self._registerability_key, True)
+        return result() if callable(result) else result
+
     def _is_viable_item(self, item):
         if self.item_mode == FactoryItemModes.Types:
             if not inspect.isclass(item):
@@ -98,7 +119,7 @@ class _AbstractFactory(object):
             elif not isinstance(item, self._abstract):
                 return False
 
-        return True
+        return self._registerability_check(item)
 
     def _item_is_registered(self, item):
         return item in self._items
@@ -150,7 +171,7 @@ class _AbstractFactory(object):
             version = self._version_key(item)
         else:
             try:
-                # If using instances, defer missing name attributes to the class.
+                # If using instances, defer missing version attributes to the class.
                 if self.item_mode == FactoryItemModes.Instances:
                     version = getattr(item, self._version_key, getattr(type(item), self._version_key, None))
                 else:
