@@ -21,7 +21,7 @@ class AbstractCollector(object):
     Typically, the data is given as a Dictionary as it's mutable and easily queried.
     """
 
-    def collect(self):
+    def collect(self, **kwargs):
         """
         Collect method to be overridden in subclasses to yield collected Context
         objects to be validated.

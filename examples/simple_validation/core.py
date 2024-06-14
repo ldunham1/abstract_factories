@@ -31,7 +31,7 @@ class DataValidator(object):
             modules=[json_checker],
         )
 
-    def collect(self):
+    def collect(self, **kwargs):
         """
         Get Contexts found by registered Collectors.
         :rtype: list[Context]
@@ -39,20 +39,20 @@ class DataValidator(object):
         return [
             context
             for collector in self.collector_factory.items()
-            for context in collector.collect()
+            for context in collector.collect(**kwargs)
         ]
 
-    def validate(self, context_list=None):
+    def validate(self, context_list):
         """
         Validate Contexts using registered Validators.
         Any validation issues are added to a dictionary identified
         by Context and Validator.
+        :param list[Context] context_list: Contexts to validate.
         :rtype: dict[str, dict[str, list[str]]]
         """
         results = defaultdict(dict)
 
-        # Use either given contexts or all available.
-        for context in context_list or self.collect():
+        for context in context_list:
             for validator in self.validator_factory.items():
                 issues = validator.validate(context)
                 if issues:
