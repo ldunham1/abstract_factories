@@ -72,7 +72,7 @@ class TestCallableIdentifierFactories(unittest.TestCase):
         def get_registerable(item):
             return item.__name__ != 'MockItem2'
 
-        factory = AbstractTypeFactory(MockAbstract, name_key='Name', registerability_key=get_registerable)
+        factory = AbstractTypeFactory(MockAbstract, name_key='Name', viability_key=get_registerable)
         factory.register_item(MockItem2)
         self.assertEqual(len(factory.items()), 0)
         factory.register_item(MockItem1)
@@ -83,7 +83,7 @@ class TestCallableIdentifierFactories(unittest.TestCase):
             MockAbstract,
             name_key=lambda item: item.Name,
             version_key=lambda item: item.Version,
-            registerability_key=lambda item: item.__name__ != 'MockItem1',
+            viability_key=lambda item: item.__name__ != 'MockItem1',
         )
         factory.register_item(MockItem2)
         self.assertEqual(len(factory.items()), 1)
@@ -103,7 +103,7 @@ class TestTypeFactoryItems(unittest.TestCase):
             MockAbstract,
             name_key='Name',
             version_key='Version',
-            registerability_key='Registerable',
+            viability_key='Registerable',
         )
 
     def test_init(self):
@@ -115,9 +115,9 @@ class TestTypeFactoryItems(unittest.TestCase):
         self.assertEqual(str(self.factory), "AbstractTypeFactory(items=0)")
 
     def test_private__is_viable_item(self):
-        self.assertFalse(self.factory._is_viable_item(object()))
-        self.assertFalse(self.factory._is_viable_item(MockAbstract))  # Abstract itself should not be viable.
-        self.assertTrue(self.factory._is_viable_item(MockItem1))
+        self.assertFalse(self.factory._item_is_registrable(object()))
+        self.assertFalse(self.factory._item_is_registrable(MockAbstract))  # Abstract itself should not be viable.
+        self.assertTrue(self.factory._item_is_registrable(MockItem1))
 
     def test_register_item(self):
         self.assertTrue(self.factory.register_item(MockItem1))
@@ -211,7 +211,7 @@ class TestInstanceFactoryItems(unittest.TestCase):
             MockAbstract,
             name_key='Name',
             version_key='Version',
-            registerability_key='is_viable',
+            viability_key='is_viable',
         )
 
     def test_init(self):
@@ -223,9 +223,9 @@ class TestInstanceFactoryItems(unittest.TestCase):
         self.assertEqual(str(self.factory), "AbstractInstanceFactory(items=0)")
 
     def test_private__is_viable_item(self):
-        self.assertFalse(self.factory._is_viable_item(object()))
-        self.assertFalse(self.factory._is_viable_item(MockAbstract()))  # Abstract itself should not be viable.
-        self.assertTrue(self.factory._is_viable_item(MockItem1()))
+        self.assertFalse(self.factory._item_is_registrable(object()))
+        self.assertFalse(self.factory._item_is_registrable(MockAbstract()))  # Abstract itself should not be viable.
+        self.assertTrue(self.factory._item_is_registrable(MockItem1()))
 
     def test_register_item(self):
         instance = MockItem1()
@@ -355,7 +355,7 @@ class TestMultiTypeFactoryItems(TestTypeFactoryItems):
             MockAbstract,
             name_key='Name',
             version_key='Version',
-            registerability_key='Registerable',
+            viability_key='Registerable',
             unique_items_only=False,
         )
 
@@ -373,7 +373,7 @@ class TestMultiInstanceFactoryItems(TestInstanceFactoryItems):
             MockAbstract,
             name_key='Name',
             version_key='Version',
-            registerability_key='is_viable',
+            viability_key='is_viable',
             unique_items_only=False,
         )
 

@@ -13,7 +13,7 @@ class RigComponentBuilder(object):
             paths=[os.path.join(os.path.dirname(__file__), 'components')],
             name_key='Name',
             version_key='Version',
-            registerability_key=None if _debug else 'Registerable',
+            viability_key=None if _debug else 'Registerable',
         )
 
     def available_components(self):

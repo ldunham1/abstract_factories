@@ -22,11 +22,11 @@ class _AbstractFactory(object):
         If str given, will get the item's value for that attribute, property or method.
         If callable given, will expect the callable to accept the item as an argument and will use the returned value.
         If None given, versioning will not be supported (first registered item will only be used).
-    :param str|Callable|None registerability_key: Item registration identifier. Defaults to None, where
-        item registerability checks are not performed.
+    :param str|Callable|None viability_key: Item registration viability identifier to use after minimal
+        viability checks have passed. Defaults to None.
         If str given, will get the item's value for that attribute, property or method.
         If callable given, will expect the callable to accept the item as an argument and will use the returned value.
-        If None given, item registerability checks are not performed.
+        If None given, items will be registered is they pass minimal viability checks.
     :param bool unique_items_only: True to only store unique items, False to support non-unique.
         Uniqueness is a list membership test (list.__contains__).
     :param FactoryItemModes|str item_mode: Factory item mode. Determine they type of Item to store (types or instances).
@@ -39,7 +39,7 @@ class _AbstractFactory(object):
                  modules=None,
                  name_key='__name__',
                  version_key=None,
-                 registerability_key=None,
+                 viability_key=None,
                  unique_items_only=True,
                  item_mode=FactoryItemModes.Types):
         if not inspect.isclass(abstract):
@@ -49,7 +49,7 @@ class _AbstractFactory(object):
 
         self._name_key = name_key
         self._version_key = version_key
-        self._registerability_key = registerability_key
+        self._viability_key = viability_key
         self._unique_items_only = unique_items_only
 
         if item_mode not in (FactoryItemModes.Types, FactoryItemModes.Instances):
@@ -91,21 +91,22 @@ class _AbstractFactory(object):
     def _item_is_registered(self, item):
         return item in self._items
 
-    def _item_is_registerable(self, item):
-        if not self._registerability_key:
+    def _item_is_viable(self, item):
+        """Perform addtionally defined viability_key check, if applicable."""
+        if not self._viability_key:
             return True
 
-        if callable(self._registerability_key):
-            result = self._registerability_key(item)
+        if callable(self._viability_key):
+            result = self._viability_key(item)
 
         # If using instances, defer missing viability attributes to the class.
         elif self.item_mode == FactoryItemModes.Instances:
-            result = getattr(item, self._registerability_key, getattr(type(item), self._registerability_key, True))
+            result = getattr(item, self._viability_key, getattr(type(item), self._viability_key, True))
         else:
-            result = getattr(item, self._registerability_key, True)
+            result = getattr(item, self._viability_key, True)
         return result() if callable(result) else result
 
-    def _is_viable_item(self, item):
+    def _item_is_registrable(self, item):
         if self.item_mode == FactoryItemModes.Types:
             if not inspect.isclass(item):
                 return False
@@ -122,10 +123,10 @@ class _AbstractFactory(object):
             elif not isinstance(item, self._abstract):
                 return False
 
-        return self._item_is_registerable(item)
+        return self._item_is_viable(item)
 
     def _add_item(self, item):
-        if self._is_viable_item(item):
+        if self._item_is_registrable(item):
             if not self.unique_items_only or not self._item_is_registered(item):
                 LOGGER.debug('Adding item {}.'.format(item))
                 self._items.append(item)
@@ -325,11 +326,11 @@ class AbstractTypeFactory(_AbstractFactory):
         If str given, will get the item's value for that attribute, property or method.
         If callable given, will expect the callable to accept the item as an argument and will use the returned value.
         If None given, versioning will not be supported (first registered item will only be used).
-    :param str|Callable|None registerability_key: Item registration identifier. Defaults to None, where
-        item registerability checks are not performed.
+    :param str|Callable|None viability_key: Item registration viability identifier to use after minimal
+        viability checks have passed. Defaults to None.
         If str given, will get the item's value for that attribute, property or method.
         If callable given, will expect the callable to accept the item as an argument and will use the returned value.
-        If None given, item registerability checks are not performed.
+        If None given, items will be registered is they pass minimal viability checks.
     :param bool unique_items_only: True to only store unique items, False to support non-unique.
         Uniqueness is a list membership test (list.__contains__).
 
@@ -341,7 +342,7 @@ class AbstractTypeFactory(_AbstractFactory):
                  modules=None,
                  name_key='__name__',
                  version_key=None,
-                 registerability_key=None,
+                 viability_key=None,
                  unique_items_only=True):
         super(AbstractTypeFactory, self).__init__(
             abstract=abstract,
@@ -349,7 +350,7 @@ class AbstractTypeFactory(_AbstractFactory):
             modules=modules,
             name_key=name_key,
             version_key=version_key,
-            registerability_key=registerability_key,
+            viability_key=viability_key,
             unique_items_only=unique_items_only,
             item_mode=FactoryItemModes.Types,
         )
@@ -370,11 +371,11 @@ class AbstractInstanceFactory(_AbstractFactory):
         If str given, will get the item's value for that attribute, property or method.
         If callable given, will expect the callable to accept the item as an argument and will use the returned value.
         If None given, versioning will not be supported (first registered item will only be used).
-    :param str|Callable|None registerability_key: Item registration identifier. Defaults to None, where
-        item registerability checks are not performed.
+    :param str|Callable|None viability_key: Item registration viability identifier to use after minimal
+        viability checks have passed. Defaults to None.
         If str given, will get the item's value for that attribute, property or method.
         If callable given, will expect the callable to accept the item as an argument and will use the returned value.
-        If None given, item registerability checks are not performed.
+        If None given, items will be registered is they pass minimal viability checks.
     :param bool unique_items_only: True to only store unique items, False to support non-unique.
         Uniqueness is a list membership test (list.__contains__).
 
@@ -386,7 +387,7 @@ class AbstractInstanceFactory(_AbstractFactory):
                  modules=None,
                  name_key='__name__',
                  version_key=None,
-                 registerability_key=None,
+                 viability_key=None,
                  unique_items_only=True):
         super(AbstractInstanceFactory, self).__init__(
             abstract=abstract,
@@ -394,7 +395,7 @@ class AbstractInstanceFactory(_AbstractFactory):
             modules=modules,
             name_key=name_key,
             version_key=version_key,
-            registerability_key=registerability_key,
+            viability_key=viability_key,
             unique_items_only=unique_items_only,
             item_mode=FactoryItemModes.Instances,
         )
