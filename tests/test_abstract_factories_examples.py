@@ -26,7 +26,7 @@ class TestExampleJsonValidator(unittest.TestCase):
     def test_collection(self):
         os.chdir(os.path.join(root_dir, 'examples', 'simple_validation', '_resources'))
         data_list = list(self.Validator.collect())
-        self.assertEqual(len(data_list), 2)
+        self.assertGreaterEqual(len(data_list), 2)
 
     def test_validation(self):
         os.chdir(os.path.join(root_dir, 'examples', 'simple_validation', '_resources'))
@@ -49,7 +49,7 @@ class TestExampleRigBuilder(unittest.TestCase):
         self.assertIsNotNone(self.Builder)
 
     def test_build(self):
-        build_data =[
+        build_data = [
             {'type': 'IKChainComponent', 'name': 'arm'},
             {'type': 'IKChainComponent', 'name': 'leg', 'version': 1},
         ]

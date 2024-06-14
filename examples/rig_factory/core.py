@@ -9,7 +9,7 @@ class RigComponentBuilder(object):
     """
     This example uses an AbstractTypeFactory as we intend 
     to build multiple rig components from the same 
-    type (ie IkChain for multiple arms and multiple legs).
+    type (ie IkChain > IKChain('arm_left'), IKChain('arm_right') etc).
 
     We're discovering and registering AbstractRigComponent 
     subclasses by path. This reduces the overhead and 
@@ -17,25 +17,17 @@ class RigComponentBuilder(object):
     modules and suits a more dynamic environment.
     
     We also assign the AbstractTypeFactory to an
-    instance variable rather than subclassing it.
-    This avoids unintentional overriding the factory's methods 
-    and also exposes new functionality - swapping factories.
+    instance variable rather than subclassing to avoid
+    unintentional overrides.
     """
 
-    def __init__(self, factory=None):
-        self.factory = factory or AbstractTypeFactory(
+    def __init__(self):
+        self.factory = AbstractTypeFactory(
             abstract=AbstractRigComponent,
             paths=[os.path.join(os.path.dirname(__file__), 'components')],
             name_key='Name',  # Removing this will default to class name instead.
             version_key='Version',
         )
-
-    def post_build(self, component_instances, component_data):
-        """
-        Post build the components to ensure they're connected 
-        appropriately.
-        """
-        pass
 
     def build(self, component_data):
         """
@@ -60,5 +52,4 @@ class RigComponentBuilder(object):
             instance.build(**data)
             results.append(instance)
 
-        self.post_build(results, component_data)
         return results

@@ -1,4 +1,3 @@
-import types
 
 
 class Context(object):
@@ -9,10 +8,10 @@ class Context(object):
     """
 
     def __init__(self, label, data):
-        self.label = label
-        self.data = data
+        self.label = label  # To identify the context.
+        self.data = data    # To be used by validators.
 
-    def __str__(self):
+    def __repr__(self):
         return '{}("{}")'.format(self.__class__.__name__, self.label)
 
 
@@ -23,7 +22,11 @@ class AbstractCollector(object):
     """
 
     def collect(self):
-        # type: () -> types.GeneratorType[Context]
+        """
+        Collect method to be overridden in subclasses to yield collected Context
+        objects to be validated.
+        :return types.GeneratorType[Context]: Yield collected Contexts.
+        """
         raise NotImplementedError('collect')
 
 
@@ -31,12 +34,19 @@ class AbstractValidator(object):
     """
     A Validator will validate the data in a Context.
     It can return a list of any issues found.
-    As Context data is mutable, if an autofix can be applied, the data can be modified before continuing to the next Validator.
+    As Context data is mutable, if an autofix can be applied, the data can be
+    modified before continuing to the next Validator.
     """
 
-    def __str__(self):
+    def __repr__(self):
         return '{}()'.format(self.__class__.__name__)
 
     def validate(self, context):
-        # type: (Context) -> list
+        """
+        Validate method to be overridden by subclasses.
+        Issues found by this validator should be put into a list and returned.
+        :param Context context: Context to validate.
+        :return list[str]: List of issues found during validation.
+            An empty list is considered a success.
+        """
         raise NotImplementedError('validate')

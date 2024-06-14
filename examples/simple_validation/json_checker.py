@@ -29,5 +29,6 @@ class JsonFileValidator(AbstractValidator):
 
 
 # ------------------------------------------------------------------------------
+# Create some instances to be discovered and registered.
 collector = JsonFileCollector()
 validator = JsonFileValidator()
