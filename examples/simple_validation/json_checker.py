@@ -5,9 +5,12 @@ from .abstracts import Context, AbstractCollector, AbstractValidator
 
 
 class JsonFileCollector(AbstractCollector):
+    """
+    Simple json file collector.
+    """
 
-    def collect(self):
-        for root, _, filenames in os.walk(os.getcwd()):
+    def collect(self, path=None, **kwargs):
+        for root, _, filenames in os.walk(path or os.getcwd()):
             for filename in filter(lambda x: x.endswith('.json'), filenames):
                 filepath = os.path.join(root, filename)
                 data = None
@@ -29,5 +32,6 @@ class JsonFileValidator(AbstractValidator):
 
 
 # ------------------------------------------------------------------------------
+# Create some instances to be discovered and registered.
 collector = JsonFileCollector()
 validator = JsonFileValidator()

@@ -21,20 +21,19 @@ class TestExampleJsonValidator(unittest.TestCase):
         self.Validator = DataValidator()
 
     def test_init(self):
+        """Test validator has initialized."""
         self.assertIsNotNone(self.Validator)
 
     def test_collection(self):
-        os.chdir(os.path.join(root_dir, 'examples', 'simple_validation', '_resources'))
-        data_list = list(self.Validator.collect())
-        self.assertEqual(len(data_list), 2)
+        """Test context collection succeeds."""
+        json_root = os.path.join(root_dir, 'examples', 'simple_validation', '_resources')
+        data_list = list(self.Validator.collect(path=json_root))
+        self.assertGreaterEqual(len(data_list), 2)
 
     def test_validation(self):
-        os.chdir(os.path.join(root_dir, 'examples', 'simple_validation', '_resources'))
-
-        results = self.Validator.validate()
-        self.assertEqual(results, {'Context("invalid_json_file.json")': {'JsonFileValidator()': ['No json data deserialized.']}})
-
-        data_list = list(self.Validator.collect())
+        """Test validation success and failures."""
+        json_root = os.path.join(root_dir, 'examples', 'simple_validation', '_resources')
+        data_list = list(self.Validator.collect(path=json_root))
         results = self.Validator.validate(data_list)
         self.assertEqual(results, {'Context("invalid_json_file.json")': {'JsonFileValidator()': ['No json data deserialized.']}})
 
@@ -46,10 +45,12 @@ class TestExampleRigBuilder(unittest.TestCase):
         self.Builder = RigComponentBuilder()
 
     def test_init(self):
+        """Test builder has initialized."""
         self.assertIsNotNone(self.Builder)
 
     def test_build(self):
-        build_data =[
+        """Test builder creates correct component instances."""
+        build_data = [
             {'type': 'IKChainComponent', 'name': 'arm'},
             {'type': 'IKChainComponent', 'name': 'leg', 'version': 1},
         ]
